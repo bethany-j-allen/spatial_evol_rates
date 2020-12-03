@@ -7,23 +7,25 @@
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 100
+iterations <- 10000
 
 #Number of latitudinal bins, likely 6 (i.e. 30deg bins)
 nbins <- 6
 
-#Upper limit of occurrences in each latitudinal bin
+#Limits of occurrences in each latitudinal bin
 #Eyeballing the empirical data, opted to use random number up to 1000 for each bin
 occs_range <- c(1:1000)       #Initial (t0)
-add_occs_range <- c(1:1000)   #t1 and t2
+add_occs_range <- c(1:500)   #t1 and t2
 
-#Number of species in initial global species pool
+#Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp <- 300                     #Initial (t0)
-add_sp <- 300                 #t1 and t2
+sp_range <- c(100:800)
 
 #Range of extinction percentages to sample from for t1 and t2
 ext_range <- c(1:100)
+
+#Designate sampling levels
+sample_pc <- c(1, 0.75, 0.5, 0.25)
 
 #Create data frame to store results
 results <- data.frame()
@@ -33,6 +35,9 @@ differences <- data.frame()
 for (x in 1:iterations){
 
   #Task 1: Build t0
+  
+  #Designate number of species in the initial pool
+  sp <- base::sample(sp_range, 1)
 
   #Designate number of occurrences in each latitudinal bin
   occs <- base::sample(occs_range, size = nbins, replace = T)
@@ -62,7 +67,9 @@ for (x in 1:iterations){
   #Designate new species pool for origination (those present in t0 plus preset additional number)
   #[This allows 'migration' while preventing taxa occurring in t0 and t2 but not t1, as would be
   #  expected under perfect sampling]
-  new_sp1 <- append(unique(unlist(t0)), c((sp + 1):(sp + add_sp)))
+  #Designate number of species in the initial pool
+  add_sp1 <- base::sample(sp_range, 1)
+  new_sp1 <- append(unique(unlist(t0)), c((sp + 1):(sp + add_sp1)))
 
   #Desginate the number of new occurrences in each latitude bin
   new_occs1 <- base::sample(add_occs_range, size = nbins, replace = T)
@@ -92,7 +99,8 @@ for (x in 1:iterations){
   surv_occs2 <- round((t1rich_count * surv_prop2), digits = 0)      #Convert proportion to whole occurrences
 
   #Designate new species pool for origination (those present in t1 plus preset additional number)
-  new_sp2 <- append(unique(unlist(t1)), c((sp + add_sp + 1):(sp + (2*add_sp))))
+  add_sp2 <- base::sample(sp_range, 1)
+  new_sp2 <- append(unique(unlist(t1)), c((sp + add_sp1 + 1):(sp + add_sp1 + add_sp2)))
 
   #Desginate the number of new occurrences in each latitude bin (used half of that in t0)
   new_occs2 <- base::sample(add_occs_range, size = nbins, replace = T)
@@ -165,10 +173,11 @@ for (x in 1:iterations){
   global_rates <- c(x, "global", length(t1_global), global_orig, global_ext,
                     (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
                              global_3t_orig, global_3t_ext), 3)))
-  global_diffs <- c(x, "global", (round(c(global_orig_p, global_ext_p, global_bc_orig_diff,
-                             global_bc_ext_diff, global_3t_orig_diff, global_3t_ext_diff), 3)))
   measured_rates <- rbind(measured_rates, global_rates)
-  measured_diffs <- rbind(measured_diffs, global_diffs)
+  measured_diffs <- rbind(measured_diffs, c(x, "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
+  measured_diffs <- rbind(measured_diffs, c(x, "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
+  measured_diffs <- rbind(measured_diffs, c(x, "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
+  measured_diffs <- rbind(measured_diffs, c(x, "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
 
   #Task 4: Calculate origination and extinction rates for individual latitude bands
 
@@ -210,19 +219,19 @@ for (x in 1:iterations){
     #Save in a vector
     rates_vector <- c(x, e, length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
                           bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
-    diffs_vector <- c(x, e, (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig_diff, bin_bc_ext_diff,
-                                     bin_3t_orig_diff, bin_3t_ext_diff), 3)))
-    #Append to data frame
     measured_rates <- rbind(measured_rates, rates_vector)
-    measured_diffs <- rbind(measured_diffs, diffs_vector)
+    
+    measured_diffs <- rbind(measured_diffs, c(x, "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
   }
   
   #Label columns in rates data frame
   colnames(measured_rates) <- c("iteration_no", "bin_no", "t1_n", "raw_origination", "raw_extinction",
                          "raw_origination_rate", "raw_extinction_rate", "BC_origination_pc",
                          "BC_extinction_pc", "tt_origination_rate", "tt_extinction_rate")
-  colnames(measured_diffs) <- c("iteration_no", "bin_no", "raw_origination_rate", "raw_extinction_rate",
-                                "BC_o_diff", "BC_e_diff", "tt_o_diff", "tt_e_diff")
+  colnames(measured_diffs) <- c("iteration_no", "bin_size", "rate", "method", "difference")
   results <- rbind(measured_rates, results)
   differences <- rbind(measured_diffs, differences)
 }
@@ -230,13 +239,8 @@ for (x in 1:iterations){
 #Summarise results
 library(tidyverse)
 
-all_global <- filter(differences, bin_no == "global")
-all_global <- select(differences, BC_o_diff, BC_e_diff, tt_o_diff, tt_e_diff)
-all_global <- mutate_all(all_global, function(x) as.numeric(as.character(x)))
-boxplot(all_global)
+differences$difference <- as.numeric(as.character(differences$difference))
 
-all_bins <- filter(differences, bin_no != "global")
-all_bins <- select(all_bins, BC_o_diff, BC_e_diff, tt_o_diff, tt_e_diff)
-all_bins <- mutate_all(all_bins, function(x) as.numeric(as.character(x)))
-boxplot(all_bins)
+ggplot(differences, aes(x = bin_size, y = difference, fill = rate)) + geom_boxplot() +
+  facet_wrap(~method) + theme_classic()
 
