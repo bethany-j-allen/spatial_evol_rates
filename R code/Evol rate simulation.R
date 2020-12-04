@@ -161,11 +161,15 @@ for (x in 1:iterations){
   global_bc_ext_diff <- global_ext_p - global_bc_ext
                                                        #Difference between raw and BC extinction
 
-  #Three-timer (as there is perfect sampling / no part-timers, the sampling probability is 1)
+  #Three-timer
+  #As sampling is being fixed through time, the sampling rate here is calculated from t1
   global_2t_1 <- length(intersect(t0_global, t1_global)) #Present in t0 and t1 irrespective of t2
   global_2t_2 <- length(intersect(t1_global, t2_global)) #Present in t1 and t2 irrespective of t0
-  global_3t_orig <- log(global_2t_2/global_through)      #3t origination rate
-  global_3t_ext <- log(global_2t_1/global_through)       #3t extinction rate
+  global_3t <- length(intersect(intersect(t0_global, t1_global), t2_global)) #Present in all t
+  global_pt <- length(setdiff(intersect(t0_global, t2_global), t1_global)) #t1 ghost ranges
+  global_t1_sampling <- global_3t/(global_3t + global_pt)
+  global_3t_orig <- log(global_2t_2/global_3t) + log(global_t1_sampling) #3t origination rate
+  global_3t_ext <- log(global_2t_1/global_3t) + log(global_t1_sampling)  #3t extinction rate
   global_3t_orig_diff <- global_orig_p - global_3t_orig  #Difference between raw and 3t origination
   global_3t_ext_diff <- global_ext_p - global_3t_ext     #Difference between raw and 3t extinction
 
@@ -208,11 +212,12 @@ for (x in 1:iterations){
     bin_bc_ext_diff <- bin_ext_prop - bin_bc_ext
                                                          #Difference between raw and BC extinction
   
-    #Three-timer (as there is perfect sampling / no part-timers, the sampling probability is 1)
+    #Three-timer - uses global sampling probability
     bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
     bin_2t_2 <- length(intersect(focal_bin_t1, t2_global)) #Present in t1 and t2 irrespective of t0
-    bin_3t_orig <- log(bin_2t_2/bin_through)      #3t origination rate
-    bin_3t_ext <- log(bin_2t_1/bin_through)       #3t extinction rate
+    bin_3t <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in all t
+    bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_t1_sampling)      #3t origination rate
+    bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_t1_sampling)       #3t extinction rate
     bin_3t_orig_diff <- bin_orig_prop - bin_3t_orig  #Difference between raw and 3t origination
     bin_3t_ext_diff <- bin_ext_prop - bin_3t_ext     #Difference between raw and 3t extinction
   
