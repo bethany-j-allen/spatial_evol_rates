@@ -7,22 +7,22 @@
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 10000
+iterations <- 1000
 
 #Number of latitudinal bins, likely 6 (i.e. 30deg bins)
 nbins <- 6
 
 #Limits of occurrences in each latitudinal bin
 #Eyeballing the empirical data, opted to use random number up to 1000 for each bin
-occs_range <- c(1:1000)       #Initial (t0)
-add_occs_range <- c(1:500)   #t1 and t2
+occs_range <- c(0:1000)       #Initial (t0)
+add_occs_range <- c(0:200)   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
 sp_range <- c(100:800)
 
-#Range of extinction percentages to sample from for t1 and t2
-ext_range <- c(1:100)
+#Range of survival (not extinction) percentages to sample from for t1 and t2
+ext_range <- c(0:75)
 
 #Designate sampling levels
 sample_pc <- c(1, 0.75, 0.5, 0.25)
@@ -209,7 +209,7 @@ for (x in 1:iterations){
                                                          #Difference between raw and BC extinction
   
     #Three-timer (as there is perfect sampling / no part-timers, the sampling probability is 1)
-    bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t0 irrespective of t2
+    bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
     bin_2t_2 <- length(intersect(focal_bin_t1, t2_global)) #Present in t1 and t2 irrespective of t0
     bin_3t_orig <- log(bin_2t_2/bin_through)      #3t origination rate
     bin_3t_ext <- log(bin_2t_1/bin_through)       #3t extinction rate
@@ -236,11 +236,29 @@ for (x in 1:iterations){
   differences <- rbind(measured_diffs, differences)
 }
 
+#Examine distribution of origination and extinction rates
+results_g <- filter(results, bin_no == "global")
+results_g$raw_origination_rate <- as.numeric(results_g$raw_origination_rate)
+results_g$raw_extinction_rate <- as.numeric(results_g$raw_extinction_rate)
+
+ggplot(results_g, aes(raw_origination_rate)) +
+  geom_histogram(binwidth = 0.05, colour = "black", fill = "lightblue") + theme_classic()
+ggplot(results_g, aes(raw_extinction_rate)) +
+  geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
+
+results_b <- filter(results, bin_no != "global")
+results_b$raw_origination_rate <- as.numeric(results_b$raw_origination_rate)
+results_b$raw_extinction_rate <- as.numeric(results_b$raw_extinction_rate)
+
+ggplot(results_b, aes(raw_origination_rate)) +
+  geom_histogram(binwidth = 0.05, colour = "black", fill = "lightblue") + theme_classic()
+ggplot(results_b, aes(raw_extinction_rate)) +
+  geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
+
 #Summarise results
 library(tidyverse)
 
 differences$difference <- as.numeric(as.character(differences$difference))
 
 ggplot(differences, aes(x = bin_size, y = difference, fill = rate)) + geom_boxplot() +
-  facet_wrap(~method) + theme_classic()
-
+  facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) + theme_classic()
