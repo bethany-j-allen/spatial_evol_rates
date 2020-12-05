@@ -117,11 +117,14 @@ bi_g_bc_ext <- log((bi_g_through + bi_g_extinctions)/bi_g_through)         #Per-
     #global_3t_ext_diff <- global_ext_p - global_3t_ext     #Difference between raw and 3t extinction
   
 #Add global rates to data frames
-evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_orig, br_g_ext,
-                    (round(c(br_g_orig_p, br_g_ext_p, br_g_bc_orig, br_g_bc_ext), 3))))
-evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_orig, bi_g_ext,
-                     (round(c(bi_g_orig_p, bi_g_ext_p, bi_g_bc_orig, bi_g_bc_ext), 3))))
-
+evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_orig, "origination", "raw", round(br_g_orig_p, 3)))
+evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_ext, "extinction", "raw", round(br_g_ext_p, 3)))
+evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_orig, "origination", "boundary-crosser", round(br_g_bc_orig, 3)))
+evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_ext, "extinction", "boundary-crosser", round(br_g_bc_ext, 3)))
+evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_orig, "origination", "raw", round(bi_g_orig_p, 3)))
+evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_ext, "extinction", "raw", round(bi_g_ext_p, 3)))
+evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_orig, "origination", "boundary-crosser", round(bi_g_bc_orig, 3)))
+evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_ext, "extinction", "boundary-crosser", round(bi_g_bc_ext, 3)))
 
 #Calculate origination and extinction rates for individual latitude bands
   
@@ -164,16 +167,29 @@ for (e in 1:length(labels)){
       #bin_3t_ext_diff <- bin_ext_prop - bin_3t_ext     #Difference between raw and 3t extinction
     
     #Save in a vector
-    br_rates_vector <- c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_orig, br_b_ext, (round(c(br_b_orig_prop,
-                                                                              br_b_ext_prop, br_b_bc_orig, br_b_bc_ext), 3)))
-    bi_rates_vector <- c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, bi_b_ext, (round(c(bi_b_orig_prop,
-                                                                              bi_b_ext_prop, bi_b_bc_orig, bi_b_bc_ext), 3)))
-    evol_rates <- rbind(evol_rates, br_rates_vector)
-    evol_rates <- rbind(evol_rates, bi_rates_vector)
+    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_orig, "origination", "raw", round(br_b_orig_prop, 3)))
+    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_ext, "extinction", "raw", round(br_b_ext_prop, 3)))
+    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_orig, "origination", "boundary-crosser", round(br_b_bc_orig, 3)))
+    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_ext, "extinction", "boundary-crosser", round(br_b_bc_ext, 3)))
+    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, "origination", "raw", round(bi_b_orig_prop, 3)))
+    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_ext, "extinction", "raw", round(bi_b_ext_prop, 3)))
+    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, "origination", "boundary-crosser", round(bi_b_bc_orig, 3)))
+    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_ext, "extinction", "boundary-crosser", round(bi_b_bc_ext, 3)))
 }
   
 #Label columns in rates data frames
-colnames(evol_rates) <- c("clade", "bin", "t1_n", "raw_origination", "raw_extinction",
-                              "raw_origination_rate", "raw_extinction_rate", "BC_origination_pc",
-                              "BC_extinction_pc")
+colnames(evol_rates) <- c("clade", "bin", "bin_size", "raw_n", "rate", "method", "value")
 
+#Amend table for plot
+evol_rates_b <- filter(evol_rates, bin != "global")
+evol_rates_b$bin <- as.numeric(as.character(evol_rates_b$bin))
+evol_rates_b$value <- as.numeric(as.character(evol_rates_b$value))
+
+#Plot
+ggplot(evol_rates_b, aes(x = bin, y = value, colour = rate)) +
+  geom_line(size = 1.5, aes(linetype = method)) + geom_point(size = 2) + facet_wrap(~clade) +
+  labs(x = "Palaeolatitude", y = "Rate") + 
+  coord_flip() + scale_x_continuous(limits = c(-90, 90)) +
+  #scale_colour_manual(values = c("blue", "limegreen")) +
+  geom_vline(aes(xintercept = 0), colour = "black", size = 0.7) +
+  theme_classic()
