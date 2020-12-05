@@ -8,12 +8,12 @@ library(tidyverse)
 
 #Create a vector giving the chronological order of stages
 stages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Induan", "Olenekian",
-            "Anisian", "Ladinian")
+            "Anisian", "Ladinian", "Carnian")
 
 #Create a vector giving the chronological order of substages
 substages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Griesbachian",
                "Dienerian", "Smithian", "Spathian", "Aegean", "Bithynian", "Pelsonian", "Illyrian",
-               "Fassanian", "Longobardian")
+               "Fassanian", "Longobardian", "Julian", "Tuvalian")
 
 
 #Read in dataset
@@ -65,6 +65,11 @@ for (i in 1:nrow(fossils)){
     fossils$stage_bin[i] <- "Ladinian"}
   if (fossils$early_interval[i] == substages[14] & !is.na(fossils$late_interval[i])){
     if(fossils$late_interval[i] == substages[15]){fossils$stage_bin[i] <- "Ladinian"}}
+  #If occurrence is dated to Julian/Tuvalian or both, it is Carnian
+  if (fossils$early_interval[i] %in% substages[16:17] & is.na(fossils$late_interval[i])){
+    fossils$stage_bin[i] <- "Carnian"}
+  if (fossils$early_interval[i] == substages[16] & !is.na(fossils$late_interval[i])){
+    if(fossils$late_interval[i] == substages[17]){fossils$stage_bin[i] <- "Carnian"}}
 }
 
 #Remove occurrences undated at stage resolution
@@ -83,7 +88,7 @@ for (j in 1:nrow(fossils)){
 
 
 ###Remove synonymy repeats (combinations of the same collection no. AND accepted name)###
-fossils <- distinct(fossils, accepted_name, collection_no_pooled, .keep_all = T)
+fossils <- distinct(fossils, accepted_name, collection_no, .keep_all = T)
 
 
 ###Allocate occurrences to a latitude bin###
@@ -93,6 +98,7 @@ labels <- seq(from = -75, to = 75, by = 30)
 
 #Add latitude band as an extra variable to the original dataset
 fossils <- mutate(fossils, paleolat_code = cut(paleolat, breaks = bins, labels = labels))
+fossils <- filter(fossils, !is.na(paleolat_code))
 
 
 ###Save cleaned dataset###
