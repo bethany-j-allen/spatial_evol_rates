@@ -10,29 +10,50 @@ library(tidyverse)
 stages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Induan", "Olenekian",
             "Anisian", "Ladinian", "Carnian")
 
+#Designate latitude bins
+bins <- seq(from = -90, to = 90, by = 30)
+labels <- seq(from = -75, to = 75, by = 30)
+
 #Read in dataset
-fossils <- read_csv("PT_brach_biv_clean.csv")
+fossils <- read_csv("data/PT_brach_biv_clean.csv")
 glimpse(fossils)
 
 ###Designate the taxonomic resolution ("species" or "genera")###
-tax_res <- "genera"
+tax_res <- "species"
 
 #Apply filters
 if (tax_res == "species"){fossils <- filter(fossils, accepted_rank == "species")
 } else if (tax_res == "genera"){fossils <- filter(fossils, !is.na(genus))}
 
-#Generate list of taxa sampled in each stage
-taxon_lists <- list()
+
+#Generate list of taxa sampled in each latitude band per stage for both clades
+brachs_list <- list()
+bivs_list <- list()
 
 for (i in 1:length(stages)) {
+  #Filter stage, then separate the clades
   one_stage <- filter(fossils, stage_bin == stages[i])
-  if (tax_res == "species"){sampled_in_bin <- sort(unique(one_stage$accepted_name))
-  } else if (tax_res == "genera"){sampled_in_bin <- sort(unique(one_stage$genus))}
-  taxon_lists[[i]] <- sampled_in_bin
+  stage_brachs <- filter(one_stage, phylum == "Brachiopoda")
+  stage_bivs <- filter(one_stage, phylum == "Mollusca")
+  #Filter latitude bins, find unique taxa, and put the vector in the list
+  for (j in 1:length(labels)){
+    brachs_one_bin <- filter(stage_brachs, paleolat_code == labels[j])
+    if (tax_res == "species"){brachs_in_bin <- sort(unique(brachs_one_bin$accepted_name))
+    } else if (tax_res == "genera"){brachs_in_bin <- sort(unique(brachs_one_bin$genus))}
+    brachs_list[[j]] <- brachs_in_bin
+    bivs_one_bin <- filter(stage_bivs, paleolat_code == labels[j])
+    if (tax_res == "species"){bivs_in_bin <- sort(unique(bivs_one_bin$accepted_name))
+    } else if (tax_res == "genera"){bivs_in_bin <- sort(unique(bivs_one_bin$genus))}
+    bivs_list[[j]] <- bivs_in_bin
+  }
+  #Save list labelled with its stage name
+  names(brachs_list) <- labels
+  names(bivs_list) <- labels
+  eval(parse(text = paste0(stages[i], "_brachs <- brachs_list")))
+  eval(parse(text = paste0(stages[i], "_bivs <- bivs_list")))
 }
 
-names(taxon_lists) <- stages
-glimpse(taxon_lists)
+
 
 rates <- data.frame()
 
