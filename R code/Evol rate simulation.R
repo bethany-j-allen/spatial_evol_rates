@@ -156,9 +156,9 @@ for (x in 1:iterations){
                                                        #Per-capita BC origination rate
   global_bc_ext <- log((global_through + global_extinctions)/global_through)
                                                        #Per-capita BC extinction rate
-  global_bc_orig_diff <- global_orig_p - global_bc_orig
+  global_bc_orig_diff <- global_bc_orig - global_orig_p
                                                        #Difference between raw and BC origination
-  global_bc_ext_diff <- global_ext_p - global_bc_ext
+  global_bc_ext_diff <- global_bc_ext - global_ext_p
                                                        #Difference between raw and BC extinction
 
   #Three-timer
@@ -170,8 +170,8 @@ for (x in 1:iterations){
   global_t1_sampling <- global_3t/(global_3t + global_pt)
   global_3t_orig <- log(global_2t_2/global_3t) + log(global_t1_sampling) #3t origination rate
   global_3t_ext <- log(global_2t_1/global_3t) + log(global_t1_sampling)  #3t extinction rate
-  global_3t_orig_diff <- global_orig_p - global_3t_orig  #Difference between raw and 3t origination
-  global_3t_ext_diff <- global_ext_p - global_3t_ext     #Difference between raw and 3t extinction
+  global_3t_orig_diff <- global_3t_orig - global_orig_p   #Difference between raw and 3t origination
+  global_3t_ext_diff <- global_3t_ext - global_ext_p     #Difference between raw and 3t extinction
 
   #Add global rates to data frame
   global_rates <- c(x, "global", length(t1_global), global_orig, global_ext,
@@ -207,9 +207,9 @@ for (x in 1:iterations){
                                                          #Per-capita BC origination rate
     bin_bc_ext <- log((bin_through + bin_extinctions)/bin_through)
                                                          #Per-capita BC extinction rate
-    bin_bc_orig_diff <- bin_orig_prop - bin_bc_orig
+    bin_bc_orig_diff <- bin_bc_orig - bin_orig_prop
                                                          #Difference between raw and BC origination
-    bin_bc_ext_diff <- bin_ext_prop - bin_bc_ext
+    bin_bc_ext_diff <- bin_bc_ext - bin_ext_prop
                                                          #Difference between raw and BC extinction
   
     #Three-timer - uses global sampling probability
@@ -218,8 +218,8 @@ for (x in 1:iterations){
     bin_3t <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in all t
     bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_t1_sampling)      #3t origination rate
     bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_t1_sampling)       #3t extinction rate
-    bin_3t_orig_diff <- bin_orig_prop - bin_3t_orig  #Difference between raw and 3t origination
-    bin_3t_ext_diff <- bin_ext_prop - bin_3t_ext     #Difference between raw and 3t extinction
+    bin_3t_orig_diff <- bin_3t_orig - bin_orig_prop   #Difference between raw and 3t origination
+    bin_3t_ext_diff <- bin_3t_ext - bin_ext_prop    #Difference between raw and 3t extinction
   
     #Save in a vector
     rates_vector <- c(x, e, length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
@@ -241,6 +241,9 @@ for (x in 1:iterations){
   differences <- rbind(measured_diffs, differences)
 }
 
+#Summarise results
+library(tidyverse)
+
 #Examine distribution of origination and extinction rates
 results_g <- filter(results, bin_no == "global")
 results_g$raw_origination_rate <- as.numeric(results_g$raw_origination_rate)
@@ -260,10 +263,9 @@ ggplot(results_b, aes(raw_origination_rate)) +
 ggplot(results_b, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
-#Summarise results
-library(tidyverse)
-
+#Plot difference between 'true' and measured rates
 differences$difference <- as.numeric(as.character(differences$difference))
 
-ggplot(differences, aes(x = bin_size, y = difference, fill = rate)) + geom_boxplot() +
-  facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) + theme_classic()
+ggplot(differences, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
