@@ -9,7 +9,7 @@
 #Number of iterations
 iterations <- 1000
 
-#Number of latitudinal bins, likely 6 (i.e. 30deg bins)
+#Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
 
 #Limits of occurrences in each latitudinal bin
@@ -24,12 +24,8 @@ sp_range <- c(100:800)
 #Range of survival (not extinction) percentages to sample from for t1 and t2
 ext_range <- c(0:75)
 
-#Designate sampling levels
-sample_pc <- c(1, 0.75, 0.5, 0.25)
-
-#Create data frame to store results
-results <- data.frame()
-differences <- data.frame()
+#Create data frames to store results
+results <- data.frame(); differences <- data.frame()
 
 
 for (x in 1:iterations){
@@ -42,8 +38,8 @@ for (x in 1:iterations){
   #Designate number of occurrences in each latitudinal bin
   occs <- base::sample(occs_range, size = nbins, replace = T)
 
-  #Assign each occurrence a species at random
-  t0 <- list()          #Document IDs of all occurrences
+  #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
+  t0 <- list(); t0_75 <- list(); t0_50 <- list(); t0_25 <- list()
 
   #For each latitude band
   for (a in 1:nbins){
@@ -51,6 +47,9 @@ for (x in 1:iterations){
     species_ids <- base::sample(sp, size = occs[a], replace = T)
     #Add bin to global list
     t0[[a]] <- species_ids
+    t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)]
+    t0_50[[a]] <- species_ids[1:round((0.5 * length(species_ids)), 0)]
+    t0_25[[a]] <- species_ids[1:round((0.25 * length(species_ids)), 0)]
   }
 
   #Task 2: Facilitate origination and extinction to create t1 and t2
@@ -71,7 +70,8 @@ for (x in 1:iterations){
   new_occs1 <- base::sample(add_occs_range, size = nbins, replace = T)
 
   #Implement extinction and origination on t0
-  t1 <- list()          #Document IDs of all occurrences
+  #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
+  t1 <- list(); t1_75 <- list(); t1_50 <- list(); t1_25 <- list()
 
   for (b in 1:nbins){
     #Pull out one latitude bin
@@ -83,6 +83,9 @@ for (x in 1:iterations){
     focal_bin1 <- append(focal_bin1, new_occ_ids1)
     #Add bin to global list
     t1[[b]] <- focal_bin1
+    t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)]
+    t1_50[[b]] <- focal_bin1[1:round((0.5 * length(focal_bin1)), 0)]
+    t1_25[[b]] <- focal_bin1[1:round((0.25 * length(focal_bin1)), 0)]
   }
 
   ###t1 -> t2###
@@ -97,8 +100,9 @@ for (x in 1:iterations){
   #Desginate the number of new occurrences in each latitude bin (used half of that in t0)
   new_occs2 <- base::sample(add_occs_range, size = nbins, replace = T)
 
-  #Implement extinction and origination on t0
-  t2 <- list()          #Document IDs of all occurrences
+  #Implement extinction and origination on t1
+  #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
+  t2 <- list(); t2_75 <- list(); t2_50 <- list(); t2_25 <- list()
 
   for (d in 1:nbins){
     #Pull out one latitude bin
@@ -110,14 +114,15 @@ for (x in 1:iterations){
     focal_bin2 <- append(focal_bin2, new_occ_ids2)
     #Add bin to global list
     t2[[d]] <- focal_bin2
+    t2_75[[b]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)]
+    t2_50[[b]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)]
+    t2_25[[b]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]
   }
-
+  
   #Task 3: Calculate origination and extinction rates globally for t1, using each sampling level
-  measured_rates <- data.frame()
-  measured_diffs <- data.frame()
   
-  #Filter occurrences to the desired sampling level
-  
+  #Create dataframes to store results in
+  measured_rates <- data.frame(); measured_diffs <- data.frame()
 
   #Produce global lists of unique occurrences (i.e. richness)
   t0_global <- unique(unlist(t0))
