@@ -44,8 +44,6 @@ for (x in 1:iterations){
 
   #Assign each occurrence a species at random
   t0 <- list()          #Document IDs of all occurrences
-  #t0rich <- list()      #Document unique occurrences
-  #t0rich_count <- c()   #Create vector of species richness for each latitude band
 
   #For each latitude band
   for (a in 1:nbins){
@@ -53,8 +51,6 @@ for (x in 1:iterations){
     species_ids <- base::sample(sp, size = occs[a], replace = T)
     #Add bin to global list
     t0[[a]] <- species_ids
-    #t0rich[[a]] <- unique(species_ids)
-    #t0rich_count <- append(t0rich_count, length(unique(species_ids)))
   }
 
   #Task 2: Facilitate origination and extinction to create t1 and t2
@@ -76,8 +72,6 @@ for (x in 1:iterations){
 
   #Implement extinction and origination on t0
   t1 <- list()          #Document IDs of all occurrences
-  #t1rich <- list()      #Document unique occurrences
-  #t1rich_count <- c()   #Create vector of species richness for each latitude band
 
   for (b in 1:nbins){
     #Pull out one latitude bin
@@ -89,8 +83,6 @@ for (x in 1:iterations){
     focal_bin1 <- append(focal_bin1, new_occ_ids1)
     #Add bin to global list
     t1[[b]] <- focal_bin1
-    #t1rich[[b]] <- unique(focal_bin1)
-    #t1rich_count <- append(t1rich_count, length(unique(focal_bin1)))
   }
 
   ###t1 -> t2###
@@ -107,8 +99,6 @@ for (x in 1:iterations){
 
   #Implement extinction and origination on t0
   t2 <- list()          #Document IDs of all occurrences
-  #t2rich <- list()      #Document unique occurrences
-  #t2rich_count <- c()   #Create vector of species richness for each latitude band
 
   for (d in 1:nbins){
     #Pull out one latitude bin
@@ -120,15 +110,7 @@ for (x in 1:iterations){
     focal_bin2 <- append(focal_bin2, new_occ_ids2)
     #Add bin to global list
     t2[[d]] <- focal_bin2
-    #t2rich[[d]] <- unique(focal_bin2)
-    #t2rich_count <- append(t2rich_count, length(unique(focal_bin2)))
   }
-
-  #See LDGs across the three time intervals
-  #par(mfrow = c(3,1))
-  #plot(t2rich_count, type = "o")
-  #plot(t1rich_count, type = "o")
-  #plot(t0rich_count, type = "o")
 
   #Task 3: Calculate origination and extinction rates globally for t1, using each sampling level
   measured_rates <- data.frame()
@@ -189,7 +171,7 @@ for (x in 1:iterations){
   #Task 4: Calculate origination and extinction rates for individual latitude bands
 
   for (e in 1:nbins){
-    #Pull out one latitude band
+    #Pull out unique occurrences from one latitude band
     focal_bin_t1 <- unique(t1[[(e)]])
   
     #Calculate per-band origination and extinction rates
