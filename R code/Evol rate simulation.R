@@ -44,8 +44,8 @@ for (x in 1:iterations){
 
   #Assign each occurrence a species at random
   t0 <- list()          #Document IDs of all occurrences
-  t0rich <- list()      #Document unique occurrences
-  t0rich_count <- c()   #Create vector of species richness for each latitude band
+  #t0rich <- list()      #Document unique occurrences
+  #t0rich_count <- c()   #Create vector of species richness for each latitude band
 
   #For each latitude band
   for (a in 1:nbins){
@@ -53,8 +53,8 @@ for (x in 1:iterations){
     species_ids <- base::sample(sp, size = occs[a], replace = T)
     #Add bin to global list
     t0[[a]] <- species_ids
-    t0rich[[a]] <- unique(species_ids)
-    t0rich_count <- append(t0rich_count, length(unique(species_ids)))
+    #t0rich[[a]] <- unique(species_ids)
+    #t0rich_count <- append(t0rich_count, length(unique(species_ids)))
   }
 
   #Task 2: Facilitate origination and extinction to create t1 and t2
@@ -62,7 +62,7 @@ for (x in 1:iterations){
   ###t0 -> t1###
   #Designate number of occurrences to survive (those that don't are local extinctions)
   surv_prop1 <- (base::sample(ext_range, size = nbins, replace = T)/100) #Generate a proportion
-  surv_occs1 <- round((t0rich_count * surv_prop1), 0) #Convert proportion to whole occurrences
+  surv_occs1 <- round((lengths(t0) * surv_prop1), 0) #Convert proportion to whole occurrences
 
   #Designate new species pool for origination (those present in t0 plus preset additional number)
   #[This allows 'migration' while preventing taxa occurring in t0 and t2 but not t1, as would be
@@ -76,8 +76,8 @@ for (x in 1:iterations){
 
   #Implement extinction and origination on t0
   t1 <- list()          #Document IDs of all occurrences
-  t1rich <- list()      #Document unique occurrences
-  t1rich_count <- c()   #Create vector of species richness for each latitude band
+  #t1rich <- list()      #Document unique occurrences
+  #t1rich_count <- c()   #Create vector of species richness for each latitude band
 
   for (b in 1:nbins){
     #Pull out one latitude bin
@@ -89,14 +89,14 @@ for (x in 1:iterations){
     focal_bin1 <- append(focal_bin1, new_occ_ids1)
     #Add bin to global list
     t1[[b]] <- focal_bin1
-    t1rich[[b]] <- unique(focal_bin1)
-    t1rich_count <- append(t1rich_count, length(unique(focal_bin1)))
+    #t1rich[[b]] <- unique(focal_bin1)
+    #t1rich_count <- append(t1rich_count, length(unique(focal_bin1)))
   }
 
   ###t1 -> t2###
   #Designate number of occurrences to survive (those that don't are local extinctions)
   surv_prop2 <- (base::sample(ext_range, size = nbins, replace = T)/100) #Generate a proportion
-  surv_occs2 <- round((t1rich_count * surv_prop2), digits = 0)      #Convert proportion to whole occurrences
+  surv_occs2 <- round((lengths(t1) * surv_prop2), digits = 0)      #Convert proportion to whole occurrences
 
   #Designate new species pool for origination (those present in t1 plus preset additional number)
   add_sp2 <- base::sample(sp_range, 1)
@@ -107,8 +107,8 @@ for (x in 1:iterations){
 
   #Implement extinction and origination on t0
   t2 <- list()          #Document IDs of all occurrences
-  t2rich <- list()      #Document unique occurrences
-  t2rich_count <- c()   #Create vector of species richness for each latitude band
+  #t2rich <- list()      #Document unique occurrences
+  #t2rich_count <- c()   #Create vector of species richness for each latitude band
 
   for (d in 1:nbins){
     #Pull out one latitude bin
@@ -120,8 +120,8 @@ for (x in 1:iterations){
     focal_bin2 <- append(focal_bin2, new_occ_ids2)
     #Add bin to global list
     t2[[d]] <- focal_bin2
-    t2rich[[d]] <- unique(focal_bin2)
-    t2rich_count <- append(t2rich_count, length(unique(focal_bin2)))
+    #t2rich[[d]] <- unique(focal_bin2)
+    #t2rich_count <- append(t2rich_count, length(unique(focal_bin2)))
   }
 
   #See LDGs across the three time intervals
@@ -130,15 +130,18 @@ for (x in 1:iterations){
   #plot(t1rich_count, type = "o")
   #plot(t0rich_count, type = "o")
 
-  #Task 3: Calculate origination and extinction rates globally for t1
+  #Task 3: Calculate origination and extinction rates globally for t1, using each sampling level
   measured_rates <- data.frame()
   measured_diffs <- data.frame()
+  
+  #Filter occurrences to the desired sampling level
+  
 
   #Produce global lists of unique occurrences (i.e. richness)
   t0_global <- unique(unlist(t0))
   t1_global <- unique(unlist(t1))
   t2_global <- unique(unlist(t2))
-
+  
   #Raw (these counts include singletons)
   global_orig <- length(setdiff(t1_global, t0_global))   #Present in t1 but not in t0
   global_ext <- length(setdiff(t1_global, t2_global))    #Present in t1 but not in t2
@@ -187,7 +190,7 @@ for (x in 1:iterations){
 
   for (e in 1:nbins){
     #Pull out one latitude band
-    focal_bin_t1 <- t1rich[[(e)]]
+    focal_bin_t1 <- unique(t1[[(e)]])
   
     #Calculate per-band origination and extinction rates
     #Raw (these counts include singletons)
@@ -244,7 +247,7 @@ for (x in 1:iterations){
 #Summarise results
 library(tidyverse)
 
-#Examine distribution of origination and extinction rates
+#Examine distribution of global origination and extinction rates
 results_g <- filter(results, bin_no == "global")
 results_g$raw_origination_rate <- as.numeric(results_g$raw_origination_rate)
 results_g$raw_extinction_rate <- as.numeric(results_g$raw_extinction_rate)
@@ -254,6 +257,7 @@ ggplot(results_g, aes(raw_origination_rate)) +
 ggplot(results_g, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
+#Examine distribution of within-bin origination and extinction rates
 results_b <- filter(results, bin_no != "global")
 results_b$raw_origination_rate <- as.numeric(results_b$raw_origination_rate)
 results_b$raw_extinction_rate <- as.numeric(results_b$raw_extinction_rate)
