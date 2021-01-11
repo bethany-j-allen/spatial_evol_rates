@@ -7,7 +7,7 @@
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 1000
+iterations <- 100
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
@@ -143,6 +143,12 @@ for (x in 1:iterations){
   
     #Store 100% sampled values as the benchmark for comparison
     if (f == 1){global_true_orig <- global_orig_p; global_true_ext <- global_ext_p}
+    
+    #Compare sampled raw counts to true value
+    global_orig_diff <- global_orig_p - global_true_orig
+                                                       #Difference between true and sampled origination
+    global_ext_diff <- global_ext_p - global_true_ext
+                                                       #Difference between true and sampled extinction
 
     #Boundary crosser
     global_originations <- length(setdiff(intersect(t1_global, t2_global), t0_global))
@@ -177,16 +183,20 @@ for (x in 1:iterations){
                       (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
                                global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "raw", round(global_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "raw", round(global_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
+  }
 
-    #Calculate rates for each latitude bin
-    for (e in 1:nbins){
+  #Calculate rates for each latitude bin
+  for (e in 1:nbins){
+    for (g in 1:length(sample_pc)){
       
       #Pull out unique occurrences from one latitude band
-      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[f], "[[(e)]]"))))
+      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(e)]]"))))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -196,7 +206,13 @@ for (x in 1:iterations){
       bin_ext_prop <- bin_ext / length(focal_bin_t1)
     
       #Store 100% sampled values as the benchmark for comparison
-      if (f == 1){bin_true_orig <- bin_orig_prop; bin_true_ext <- bin_ext_prop}
+      if (g == 1){bin_true_orig <- bin_orig_prop; bin_true_ext <- bin_ext_prop}
+      
+      #Compare sampled raw counts to true value
+      bin_orig_diff <- bin_orig_prop - bin_true_orig
+                                                         #Difference between true and sampled origination
+      bin_ext_diff <- bin_ext_prop - bin_true_ext
+                                                         #Difference between true and sampled extinction
   
       #Boundary crosser
       bin_originations <- length(setdiff(intersect(focal_bin_t1, t2_global), t0_global))
@@ -224,13 +240,15 @@ for (x in 1:iterations){
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext    #Difference between raw and 3t extinction
   
       #Save in a vector
-      rates_vector <- c(x, e, sample_pc[f], length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
+      rates_vector <- c(x, e, sample_pc[g], length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
                           bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
     }
   }
   
@@ -249,18 +267,19 @@ for (x in 1:iterations){
 #Summarise results
 library(tidyverse)
 
-#Examine distribution of global origination and extinction rates
-results_g <- filter(results, bin_no == "global")
-results_g$raw_origination_rate <- as.numeric(results_g$raw_origination_rate)
-results_g$raw_extinction_rate <- as.numeric(results_g$raw_extinction_rate)
+#Examine distribution of global "true" origination and extinction rates
+results_g <- filter(results, bin_no == "global") %>% filter(sampling == "100")
+results_g$raw_origination_rate <- as.numeric(results_g_100$raw_origination_rate)
+results_g$raw_extinction_rate <- as.numeric(results_g_100$raw_extinction_rate)
 
 ggplot(results_g, aes(raw_origination_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "lightblue") + theme_classic()
 ggplot(results_g, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
-#Examine distribution of within-bin origination and extinction rates
-results_b <- filter(results, bin_no != "global")
+
+#Examine distribution of within-bin "true" origination and extinction rates
+results_b <- filter(results, bin_no != "global") %>% filter(sampling == "100")
 results_b$raw_origination_rate <- as.numeric(results_b$raw_origination_rate)
 results_b$raw_extinction_rate <- as.numeric(results_b$raw_extinction_rate)
 
@@ -269,9 +288,21 @@ ggplot(results_b, aes(raw_origination_rate)) +
 ggplot(results_b, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
-#Plot difference between 'true' and measured rates
-differences$difference <- as.numeric(as.character(differences$difference))
 
-ggplot(differences, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+#Plot difference between "true" and measured rates at different sampling levels
+sampled_100 <- filter(differences, sampling == "100")
+sampled_100$difference <- as.numeric(as.character(sampled_100$difference))
+sampled_75 <- filter(differences, sampling == "75")
+sampled_75$difference <- as.numeric(as.character(sampled_75$difference))
+sampled_50 <- filter(differences, sampling == "50")
+sampled_50$difference <- as.numeric(as.character(sampled_50$difference))
+sampled_25 <- filter(differences, sampling == "25")
+sampled_25$difference <- as.numeric(as.character(sampled_25$difference))
+
+ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
+ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+
