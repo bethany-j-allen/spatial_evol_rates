@@ -25,7 +25,7 @@ sp_range <- c(100:800)
 ext_range <- c(0:100)
 
 #Create data frames to store results
-results <- data.frame(); differences <- data.frame()
+results <- data.frame(); differences <- data.frame(); sampling_3t_est <- data.frame()
 
 
 for (x in 1:iterations){
@@ -183,6 +183,7 @@ for (x in 1:iterations){
                       (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
                                global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
+    sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_t1_sampling))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "raw", round(global_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "raw", round(global_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
@@ -258,11 +259,11 @@ for (x in 1:iterations){
                                 "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
                                 "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "bin_size", "rate", "method", "difference")
+  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated")
   results <- rbind(measured_rates, results)
   differences <- rbind(measured_diffs, differences)
 }
 
-###Needs amending to reflect new sampling levels###
 
 #Summarise results
 library(tidyverse)
@@ -311,3 +312,10 @@ ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(
 ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
+
+
+#Plot difference between sampling level and that estimated by the 3t method
+sampling_3t_est$estimated <- as.numeric(as.character(sampling_3t_est$estimated))
+sampling_3t_est$sampled <- as.character(sampling_3t_est$sampled/100)
+ggplot(sampling_3t_est, aes(x = sampled, y = estimated)) +
+  geom_boxplot(aes(group = sampled)) + theme_classic()
