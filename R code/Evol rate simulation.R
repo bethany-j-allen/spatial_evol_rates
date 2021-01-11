@@ -22,7 +22,7 @@ add_occs_range <- c(0:200)   #t1 and t2
 sp_range <- c(100:800)
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- c(0:75)
+ext_range <- c(0:100)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame()
@@ -269,8 +269,8 @@ library(tidyverse)
 
 #Examine distribution of global "true" origination and extinction rates
 results_g <- filter(results, bin_no == "global") %>% filter(sampling == "100")
-results_g$raw_origination_rate <- as.numeric(results_g_100$raw_origination_rate)
-results_g$raw_extinction_rate <- as.numeric(results_g_100$raw_extinction_rate)
+results_g$raw_origination_rate <- as.numeric(results_g$raw_origination_rate)
+results_g$raw_extinction_rate <- as.numeric(results_g$raw_extinction_rate)
 
 ggplot(results_g, aes(raw_origination_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "lightblue") + theme_classic()
@@ -290,7 +290,7 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 
 
 #Plot difference between "true" and measured rates at different sampling levels
-sampled_100 <- filter(differences, sampling == "100")
+sampled_100 <- filter(differences, sampling == "100") %>% filter(method != "raw")
 sampled_100$difference <- as.numeric(as.character(sampled_100$difference))
 sampled_75 <- filter(differences, sampling == "75")
 sampled_75$difference <- as.numeric(as.character(sampled_75$difference))
@@ -305,4 +305,9 @@ ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline
 ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
-
+ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
