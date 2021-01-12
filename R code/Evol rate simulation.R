@@ -319,7 +319,7 @@ ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(
 
 
 #Plot difference between sampling level and that estimated by the 3t method
-sampling_3t_est$estimated <- as.numeric(as.character(sampling_3t_est$estimated))
-sampling_3t_est$sampled <- as.character(sampling_3t_est$sampled/100)
-ggplot(sampling_3t_est, aes(x = sampled, y = estimated)) +
+sampling$estimated <- as.numeric(as.character(sampling$estimated))
+sampling$sampled <- as.character(sampling$sampled/100)
+ggplot(sampling, aes(x = sampled, y = estimated)) +
   geom_boxplot(aes(group = sampled)) + theme_classic()
