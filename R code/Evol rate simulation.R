@@ -15,7 +15,7 @@ nbins <- 6
 #Limits of occurrences in each latitudinal bin
 #Eyeballing the empirical data, opted to use random number up to 1000 for each bin
 occs_range <- c(0:1000)       #Initial (t0)
-add_occs_range <- c(0:200)   #t1 and t2
+add_occs_range <- c(0:500)   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
@@ -25,7 +25,7 @@ sp_range <- c(100:800)
 ext_range <- c(0:100)
 
 #Create data frames to store results
-results <- data.frame(); differences <- data.frame(); sampling_3t_est <- data.frame()
+results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
 
 
 for (x in 1:iterations){
@@ -79,7 +79,7 @@ for (x in 1:iterations){
     #Remove 'local' extinctions by sampling survivors at random from t0
     focal_bin1 <- base::sample(focal_bin1, size = surv_occs1[b], replace = F)
     #Add origination
-    new_occ_ids1 <- base::sample(new_sp1, size = new_occs1, replace = T)
+    new_occ_ids1 <- base::sample(new_sp1, size = new_occs1[b], replace = T)
     focal_bin1 <- append(focal_bin1, new_occ_ids1)
     #Add bin to global list
     t1_100[[b]] <- focal_bin1
@@ -110,20 +110,20 @@ for (x in 1:iterations){
     #Remove 'local' extinctions by sampling survivors at random from t0
     focal_bin2 <- base::sample(focal_bin2, size = surv_occs2[d], replace = F)
     #Add origination
-    new_occ_ids2 <- base::sample(new_sp2, size = new_occs2, replace = T)
+    new_occ_ids2 <- base::sample(new_sp2, size = new_occs2[d], replace = T)
     focal_bin2 <- append(focal_bin2, new_occ_ids2)
     #Add bin to global list
     t2_100[[d]] <- focal_bin2
-    t2_75[[b]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)]
-    t2_50[[b]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)]
-    t2_25[[b]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]
+    t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)]
+    t2_50[[d]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)]
+    t2_25[[d]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]
   }
   
   #Task 3: Calculate origination and extinction rates for t1, using each sampling level, at global
   #  scale and for individual latitude bands
   
   #Create dataframes to store results in
-  measured_rates <- data.frame(); measured_diffs <- data.frame()
+  measured_rates <- data.frame(); measured_diffs <- data.frame(); sampling_3t_est <- data.frame()
   
   #Designate sampling levels, starting with 100%
   sample_pc <- c(100, 75, 50, 25)
@@ -177,7 +177,7 @@ for (x in 1:iterations){
     global_3t_ext <- log(global_2t_1/global_3t) + log(global_t1_sampling)  #3t extinction rate
     global_3t_orig_diff <- global_3t_orig - global_true_orig   #Difference between raw and 3t origination
     global_3t_ext_diff <- global_3t_ext - global_true_ext   #Difference between raw and 3t extinction
-
+    
     #Add global rates to data frame
     global_rates <- c(x, "global", sample_pc[f], length(t1_global), global_orig, global_ext,
                       (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
@@ -192,12 +192,15 @@ for (x in 1:iterations){
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
   }
 
+  #Add column names to sampling estimate data frame
+  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated")
+  
   #Calculate rates for each latitude bin
   for (e in 1:nbins){
     for (g in 1:length(sample_pc)){
       
       #Pull out unique occurrences from one latitude band
-      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(e)]]"))))
+      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -235,8 +238,9 @@ for (x in 1:iterations){
       bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
       bin_2t_2 <- length(intersect(focal_bin_t1, t2_global)) #Present in t1 and t2 irrespective of t0
       bin_3t <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in all t
-      bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_t1_sampling)      #3t origination rate
-      bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_t1_sampling)       #3t extinction rate
+      global_est_sampling <- sampling_3t_est$estimated[g]    #Pull the global sampling estimate
+      bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_est_sampling)      #3t origination rate
+      bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_est_sampling)       #3t extinction rate
       bin_3t_orig_diff <- bin_3t_orig - bin_true_orig   #Difference between raw and 3t origination
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext    #Difference between raw and 3t extinction
   
@@ -259,9 +263,9 @@ for (x in 1:iterations){
                                 "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
                                 "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "bin_size", "rate", "method", "difference")
-  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated")
   results <- rbind(measured_rates, results)
   differences <- rbind(measured_diffs, differences)
+  sampling <- rbind(sampling_3t_est, sampling)
 }
 
 
