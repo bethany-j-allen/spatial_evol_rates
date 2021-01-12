@@ -7,7 +7,7 @@
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 100
+iterations <- 1000
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
@@ -306,20 +306,19 @@ sampled_25$difference <- as.numeric(as.character(sampled_25$difference))
 
 ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  theme_classic()
+  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
 ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  theme_classic()
+  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
 ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  theme_classic()
+  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
 ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  theme_classic()
+  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
 
 
 #Plot difference between sampling level and that estimated by the 3t method
 sampling$estimated <- as.numeric(as.character(sampling$estimated))
 sampling$sampled <- as.character(sampling$sampled/100)
-ggplot(sampling, aes(x = sampled, y = estimated)) +
-  geom_boxplot(aes(group = sampled)) + theme_classic()
+ggplot(sampling, aes(x = sampled, y = estimated)) + geom_boxplot(aes(group = sampled)) + theme_classic()
