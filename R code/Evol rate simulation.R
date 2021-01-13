@@ -269,6 +269,12 @@ for (x in 1:iterations){
 }
 
 
+#Save results
+write.csv(results, "data/Sim_res_overall.csv", row.names = F)
+write.csv(differences, "data/Sim_diffs_overall.csv", row.names = F)
+write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
+
+
 #Summarise results
 library(tidyverse)
 
@@ -318,7 +324,7 @@ ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(
   scale_y_continuous(limits = c(-1, 1)) + theme_classic()
 
 
-#Plot difference between sampling level and that estimated by the 3t method
+#Plot sampling level estimated by the 3t method
 sampling$estimated <- as.numeric(as.character(sampling$estimated))
 sampling$sampled <- as.character(sampling$sampled/100)
 ggplot(sampling, aes(x = sampled, y = estimated)) + geom_boxplot(aes(group = sampled)) + theme_classic()
