@@ -19,10 +19,11 @@ add_occs_range <- c(0:500)   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(100:800)
+sp_range <- c(200:800)        #Initial (t0)
+add_sp_range <- c(200:800)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- c(0:100)
+ext_range <- c(0:50)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
@@ -63,7 +64,7 @@ for (x in 1:iterations){
   #[This allows 'migration' while preventing taxa occurring in t0 and t2 but not t1, as would be
   #  expected under perfect sampling]
   #Designate number of species in the initial pool
-  add_sp1 <- base::sample(sp_range, 1)
+  add_sp1 <- base::sample(add_sp_range, 1)
   new_sp1 <- append(unique(unlist(t0_100)), c((sp + 1):(sp + add_sp1)))
 
   #Desginate the number of new occurrences in each latitude bin
@@ -94,7 +95,7 @@ for (x in 1:iterations){
   surv_occs2 <- round((lengths(t1_100) * surv_prop2), digits = 0)      #Convert proportion to whole occurrences
 
   #Designate new species pool for origination (those present in t1 plus preset additional number)
-  add_sp2 <- base::sample(sp_range, 1)
+  add_sp2 <- base::sample(add_sp_range, 1)
   new_sp2 <- append(unique(unlist(t1_100)), c((sp + add_sp1 + 1):(sp + add_sp1 + add_sp2)))
 
   #Desginate the number of new occurrences in each latitude bin (used half of that in t0)
