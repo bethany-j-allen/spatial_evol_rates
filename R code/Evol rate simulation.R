@@ -19,8 +19,8 @@ add_occs_range <- c(0:500)   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(200:800)        #Initial (t0)
-add_sp_range <- c(200:800)    #t1 and t2
+sp_range <- c(500:1500)        #Initial (t0)
+add_sp_range <- c(0:1000)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
 ext_range <- c(0:50)
@@ -313,16 +313,20 @@ sampled_25$difference <- as.numeric(as.character(sampled_25$difference))
 
 ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
 ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
 ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
 ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  scale_y_continuous(limits = c(-1, 1)) + theme_classic()
+  #scale_y_continuous(limits = c(-1, 1)) + 
+  theme_classic()
 
 
 #Plot sampling level estimated by the 3t method
