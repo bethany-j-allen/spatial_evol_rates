@@ -19,11 +19,11 @@ add_occs_range <- c(0:500)   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(500:1500)        #Initial (t0)
-add_sp_range <- c(0:1000)    #t1 and t2
+sp_range <- c(500:1200)        #Initial (t0)
+add_sp_range <- c(100:500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- c(0:50)
+ext_range <- seq(from = 0, to = 10, by = 0.01)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
