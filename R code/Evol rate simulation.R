@@ -167,9 +167,7 @@ for (x in 1:iterations){
     
     #Compare sampled raw counts to true value
     global_orig_diff <- global_orig_p - global_true_orig
-                                                       #Difference between true and sampled origination
     global_ext_diff <- global_ext_p - global_true_ext
-                                                       #Difference between true and sampled extinction
 
     #Boundary crosser
     global_originations <- length(setdiff(intersect(t1_global, t2_global), t0_global))
@@ -182,10 +180,13 @@ for (x in 1:iterations){
                                                        #Per-capita BC origination rate
     global_bc_ext <- log((global_through + global_extinctions)/global_through)
                                                        #Per-capita BC extinction rate
-    global_bc_orig_diff <- global_bc_orig - global_true_orig
-                                                       #Difference between true and BC origination
-    global_bc_ext_diff <- global_bc_ext - global_true_ext
-                                                       #Difference between true and BC extinction
+    
+    #Store 100% sampled values as the benchmark for comparison
+    if (f == 1){global_true_bc_orig <- global_bc_orig; global_true_bc_ext <- global_bc_ext}
+    
+    #Compare sampled BC rates to 100% value
+    global_bc_orig_diff <- global_bc_orig - global_true_bc_orig
+    global_bc_ext_diff <- global_bc_ext - global_true_bc_ext
 
     #Three-timer
     #As sampling is being fixed through time, the sampling rate here is calculated from t1
@@ -196,8 +197,13 @@ for (x in 1:iterations){
     global_t1_sampling <- global_3t/(global_3t + global_pt) #Estimate of sampling completeness
     global_3t_orig <- log(global_2t_2/global_3t) + log(global_t1_sampling) #3t origination rate
     global_3t_ext <- log(global_2t_1/global_3t) + log(global_t1_sampling)  #3t extinction rate
-    global_3t_orig_diff <- global_3t_orig - global_true_orig   #Difference between raw and 3t origination
-    global_3t_ext_diff <- global_3t_ext - global_true_ext   #Difference between raw and 3t extinction
+    
+    #Store 100% sampled values as the benchmark for comparison
+    if (f == 1){global_true_3t_orig <- global_3t_orig; global_true_3t_ext <- global_3t_ext}
+    
+    #Compare sampled 3T rates to 100% value
+    global_3t_orig_diff <- global_3t_orig - global_true_3t_orig
+    global_3t_ext_diff <- global_3t_ext - global_true_3t_ext
     
     #Add global rates to data frame
     global_rates <- c(x, "global", sample_pc[f], length(t1_global), global_orig, global_ext,
@@ -235,9 +241,7 @@ for (x in 1:iterations){
       
       #Compare sampled raw counts to true value
       bin_orig_diff <- bin_orig_prop - bin_true_orig
-                                                         #Difference between true and sampled origination
       bin_ext_diff <- bin_ext_prop - bin_true_ext
-                                                         #Difference between true and sampled extinction
   
       #Boundary crosser
       bin_originations <- length(setdiff(intersect(focal_bin_t1, t2_global), t0_global))
@@ -250,10 +254,13 @@ for (x in 1:iterations){
                                                          #Per-capita BC origination rate
       bin_bc_ext <- log((bin_through + bin_extinctions)/bin_through)
                                                          #Per-capita BC extinction rate
-      bin_bc_orig_diff <- bin_bc_orig - bin_true_orig
-                                                         #Difference between raw and BC origination
-      bin_bc_ext_diff <- bin_bc_ext - bin_true_ext
-                                                         #Difference between raw and BC extinction
+      
+      #Store 100% sampled values as the benchmark for comparison
+      if (g == 1){bin_true_bc_orig <- bin_bc_orig; bin_true_bc_ext <- bin_bc_ext}
+      
+      #Compare sampled BC rates to 100% value
+      bin_bc_orig_diff <- bin_bc_orig - bin_true_bc_orig
+      bin_bc_ext_diff <- bin_bc_ext - bin_true_bc_ext
   
       #Three-timer - uses global t1 sampling probability
       bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
@@ -262,8 +269,13 @@ for (x in 1:iterations){
       global_est_sampling <- sampling_3t_est$estimated[g]    #Pull the global sampling estimate
       bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_est_sampling)      #3t origination rate
       bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_est_sampling)       #3t extinction rate
-      bin_3t_orig_diff <- bin_3t_orig - bin_true_orig   #Difference between raw and 3t origination
-      bin_3t_ext_diff <- bin_3t_ext - bin_true_ext    #Difference between raw and 3t extinction
+      
+      #Store 100% sampled values as the benchmark for comparison
+      if (g == 1){bin_true_3t_orig <- bin_3t_orig; bin_true_3t_ext <- bin_3t_ext}
+      
+      #Compare sampled 3T rates to 100% value
+      bin_3t_orig_diff <- bin_3t_orig - bin_true_3t_orig
+      bin_3t_ext_diff <- bin_3t_ext - bin_true_3t_ext
   
       #Save in a vector
       rates_vector <- c(x, e, sample_pc[g], length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
@@ -322,14 +334,6 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 
 
 #Plot difference between "true" and measured rates at different sampling levels
-sampled_100 <- filter(differences, sampling == "100") %>% filter(method != "raw")
-sampled_100$difference <- as.numeric(as.character(sampled_100$difference))
-
-ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
-  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  #scale_y_continuous(limits = c(-1, 1)) +
-  theme_classic()
-
 sampled_75 <- filter(differences, sampling == "75")
 sampled_75$difference <- as.numeric(as.character(sampled_75$difference))
 sampled_50 <- filter(differences, sampling == "50")
