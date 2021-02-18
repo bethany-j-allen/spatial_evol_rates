@@ -274,9 +274,9 @@ for (x in 1:iterations){
                                 "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
                                 "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "bin_size", "rate", "method", "difference")
-  results <- rbind(measured_rates, results)
-  differences <- rbind(measured_diffs, differences)
-  sampling <- rbind(sampling_3t_est, sampling)
+  results <- rbind(results, measured_rates)
+  differences <- rbind(differences, measured_diffs)
+  sampling <- rbind(sampling, sampling_3t_est)
 }
 
 
