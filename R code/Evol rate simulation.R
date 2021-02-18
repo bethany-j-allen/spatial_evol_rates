@@ -50,7 +50,7 @@ for (x in 1:iterations){
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
   t0_100 <- list()
   if (to_vary == "occurrences") {t0_75 <- list(); t0_50 <- list(); t0_25 <- list()} else
-    if (to_vary == "sampling") {t0_random <- list()}
+    if (to_vary == "sampling") {t0_0 <- list()}
 
   #For each latitude band
   for (a in 1:nbins){
@@ -61,7 +61,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences"){t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)];
       t0_50[[a]] <- species_ids[1:round((0.5 * length(species_ids)), 0)];
       t0_25[[a]] <- species_ids[1:round((0.25 * length(species_ids)), 0)]} else
-      if (to_vary == "sampling") {t0_random[[a]] <- species_ids[1:sample(length(species_ids), 1)]}
+      if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:sample(length(species_ids), 1)]}
   }
 
   #Task 2: Facilitate origination and extinction to create t1 and t2
@@ -86,7 +86,7 @@ for (x in 1:iterations){
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
   t1_100 <- list()
   if (to_vary == "occurrences") {t1_75 <- list(); t1_50 <- list(); t1_25 <- list()} else
-    if (to_vary == "sampling") {t1_random <- list()}
+    if (to_vary == "sampling") {t1_0 <- list()}
 
   for (b in 1:nbins){
     #Pull out one latitude bin
@@ -101,7 +101,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences"){t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)];
     t1_50[[b]] <- focal_bin1[1:round((0.5 * length(focal_bin1)), 0)];
     t1_25[[b]] <- focal_bin1[1:round((0.25 * length(focal_bin1)), 0)]} else
-      if (to_vary == "sampling") {t1_random[[b]] <- focal_bin1[1:sample(length(focal_bin1), 1)]}
+      if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:sample(length(focal_bin1), 1)]}
   }
 
   ###t1 -> t2###
@@ -121,7 +121,7 @@ for (x in 1:iterations){
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
   t2_100 <- list()
   if (to_vary == "occurrences") {t2_75 <- list(); t2_50 <- list(); t2_25 <- list()} else
-    if (to_vary == "sampling") {t2_random <- list()}
+    if (to_vary == "sampling") {t2_0 <- list()}
 
   for (d in 1:nbins){
     #Pull out one latitude bin
@@ -136,7 +136,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences"){t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)];
     t2_50[[d]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)];
     t2_25[[d]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]} else
-      if (to_vary == "sampling") {t2_random[[d]] <- focal_bin2[1:sample(length(focal_bin2), 1)]}
+      if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:sample(length(focal_bin2), 1)]}
   }
   
   #Task 3: Calculate origination and extinction rates for t1, using each sampling level, at global
@@ -146,7 +146,8 @@ for (x in 1:iterations){
   measured_rates <- data.frame(); measured_diffs <- data.frame(); sampling_3t_est <- data.frame()
   
   #Designate sampling levels, starting with 100%
-  sample_pc <- c(100, 75, 50, 25)
+  if (to_vary == "occurrences") {sample_pc <- c(100, 75, 50, 25)} else
+    if (to_vary == "sampling") {sample_pc <- c(100, 0)}
   
   for (f in 1:length(sample_pc)){
 
@@ -323,6 +324,12 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 #Plot difference between "true" and measured rates at different sampling levels
 sampled_100 <- filter(differences, sampling == "100") %>% filter(method != "raw")
 sampled_100$difference <- as.numeric(as.character(sampled_100$difference))
+
+ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
+
 sampled_75 <- filter(differences, sampling == "75")
 sampled_75$difference <- as.numeric(as.character(sampled_75$difference))
 sampled_50 <- filter(differences, sampling == "50")
@@ -330,10 +337,6 @@ sampled_50$difference <- as.numeric(as.character(sampled_50$difference))
 sampled_25 <- filter(differences, sampling == "25")
 sampled_25$difference <- as.numeric(as.character(sampled_25$difference))
 
-ggplot(sampled_100, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
-  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  #scale_y_continuous(limits = c(-1, 1)) +
-  theme_classic()
 ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
@@ -343,6 +346,14 @@ ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(
   #scale_y_continuous(limits = c(-1, 1)) +
   theme_classic()
 ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  #scale_y_continuous(limits = c(-1, 1)) + 
+  theme_classic()
+
+sampled_rand <- filter(differences, sampling == "0")
+sampled_rand$difference <- as.numeric(as.character(sampled_rand$difference))
+
+ggplot(sampled_rand, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) + 
   theme_classic()
