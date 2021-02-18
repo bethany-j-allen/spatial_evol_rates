@@ -12,18 +12,25 @@ iterations <- 1000
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
 
-#Limits of occurrences in each latitudinal bin
-#Eyeballing the empirical data, opted to use random number up to 1000 for each bin
-occs_range <- c(0:1000)       #Initial (t0)
-add_occs_range <- c(0:500)   #t1 and t2
+#Do occurrences vary against fixed sampling rates, or are occurrences fixed while sampling varies?
+to_vary <- "occurrences"
+
+#Set occurrence numbers
+#If occurrences vary, this is the upper limit of occurrences in each latitudinal bin
+#If sampling varies, this is the fixed number of occurrences used
+occs_range <- 1000       #Initial (t0)
+add_occs_range <- 500   #t1 and t2
+
+#If occurrences vary, sampling levels are 25%, 50% and 75% of occurrences
+#If sampling varies, it ranges between 0% and 100% of occurrences for each latitude bin
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(500:1200)        #Initial (t0)
-add_sp_range <- c(100:500)    #t1 and t2
+sp_range <- c(500:2000)        #Initial (t0)
+add_sp_range <- c(100:1500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- seq(from = 0, to = 10, by = 0.01)
+ext_range <- seq(from = 0, to = 50, by = 0.01)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
@@ -37,7 +44,8 @@ for (x in 1:iterations){
   sp <- base::sample(sp_range, 1)
 
   #Designate number of occurrences in each latitudinal bin
-  occs <- base::sample(occs_range, size = nbins, replace = T)
+  if (to_vary == "occurrences") {occs <- base::sample(c(0:occs_range), size = nbins, replace = T)} else
+    if (to_vary == "sampling") {occs <- rep(occs_range, nbins)}
 
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
   t0_100 <- list(); t0_75 <- list(); t0_50 <- list(); t0_25 <- list()
@@ -67,8 +75,9 @@ for (x in 1:iterations){
   add_sp1 <- base::sample(add_sp_range, 1)
   new_sp1 <- append(unique(unlist(t0_100)), c((sp + 1):(sp + add_sp1)))
 
-  #Desginate the number of new occurrences in each latitude bin
-  new_occs1 <- base::sample(add_occs_range, size = nbins, replace = T)
+  #Designate the number of new occurrences in each latitude bin
+  if (to_vary == "occurrences") {new_occs1 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
+    if (to_vary == "sampling") {new_occs1 <- rep(add_occs_range, nbins)}
 
   #Implement extinction and origination on t0
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
@@ -98,8 +107,9 @@ for (x in 1:iterations){
   add_sp2 <- base::sample(add_sp_range, 1)
   new_sp2 <- append(unique(unlist(t1_100)), c((sp + add_sp1 + 1):(sp + add_sp1 + add_sp2)))
 
-  #Desginate the number of new occurrences in each latitude bin (used half of that in t0)
-  new_occs2 <- base::sample(add_occs_range, size = nbins, replace = T)
+  #Designate the number of new occurrences in each latitude bin
+  if (to_vary == "occurrences") {new_occs2 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
+    if (to_vary == "sampling") {new_occs2 <- rep(add_occs_range, nbins)}
 
   #Implement extinction and origination on t1
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
