@@ -58,7 +58,7 @@ for (x in 1:iterations){
     species_ids <- base::sample(sp, size = occs[a], replace = T)
     #Add bin to global list
     t0_100[[a]] <- species_ids
-    if (to_vary == "occurrences"){t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)];
+    if (to_vary == "occurrences") {t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)];
       t0_50[[a]] <- species_ids[1:round((0.5 * length(species_ids)), 0)];
       t0_25[[a]] <- species_ids[1:round((0.25 * length(species_ids)), 0)]} else
       if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:sample(length(species_ids), 1)]}
@@ -98,7 +98,7 @@ for (x in 1:iterations){
     focal_bin1 <- append(focal_bin1, new_occ_ids1)
     #Add bin to global list
     t1_100[[b]] <- focal_bin1
-    if (to_vary == "occurrences"){t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)];
+    if (to_vary == "occurrences") {t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)];
     t1_50[[b]] <- focal_bin1[1:round((0.5 * length(focal_bin1)), 0)];
     t1_25[[b]] <- focal_bin1[1:round((0.25 * length(focal_bin1)), 0)]} else
       if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:sample(length(focal_bin1), 1)]}
@@ -133,7 +133,7 @@ for (x in 1:iterations){
     focal_bin2 <- append(focal_bin2, new_occ_ids2)
     #Add bin to global list
     t2_100[[d]] <- focal_bin2
-    if (to_vary == "occurrences"){t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)];
+    if (to_vary == "occurrences") {t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)];
     t2_50[[d]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)];
     t2_25[[d]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]} else
       if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:sample(length(focal_bin2), 1)]}
@@ -334,32 +334,19 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 
 
 #Plot difference between "true" and measured rates at different sampling levels
-sampled_75 <- filter(differences, sampling == "75")
-sampled_75$difference <- as.numeric(as.character(sampled_75$difference))
-sampled_50 <- filter(differences, sampling == "50")
-sampled_50$difference <- as.numeric(as.character(sampled_50$difference))
-sampled_25 <- filter(differences, sampling == "25")
-sampled_25$difference <- as.numeric(as.character(sampled_25$difference))
+sampled_g <- filter(differences, sampling != "100") %>% filter(bin_size == "global")
+sampled_g$difference <- as.numeric(as.character(sampled_g$difference))
+sampled_b <- filter(differences, sampling != "100") %>% filter(bin_size == "lat_band")
+sampled_b$difference <- as.numeric(as.character(sampled_b$difference))
 
-ggplot(sampled_75, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+
+ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
   theme_classic()
-ggplot(sampled_50, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+ggplot(sampled_b, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
-  theme_classic()
-ggplot(sampled_25, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
-  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  #scale_y_continuous(limits = c(-1, 1)) + 
-  theme_classic()
-
-sampled_rand <- filter(differences, sampling == "0")
-sampled_rand$difference <- as.numeric(as.character(sampled_rand$difference))
-
-ggplot(sampled_rand, aes(x = bin_size, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
-  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  #scale_y_continuous(limits = c(-1, 1)) + 
   theme_classic()
 
 
