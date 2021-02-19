@@ -341,7 +341,7 @@ for (x in 1:iterations){
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
 
-#Save results
+###Save results###
 write.csv(results, "data/Sim_res_overall.csv", row.names = F)
 write.csv(differences, "data/Sim_diffs_overall.csv", row.names = F)
 write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
@@ -349,8 +349,7 @@ write.csv(gradients, "data/Sim_grads_overall.csv", row.names = F)
 write.csv(shifts, "data/Sim_shifts_overall.csv", row.names = F)
 
 
-#Summarise results
-
+###Summarise results###
 
 #Examine distribution of global "true" origination and extinction rates
 results_g <- filter(results, bin_no == "global") %>% filter(sampling == "100")
@@ -388,6 +387,14 @@ ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(a
 ggplot(sampled_b, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
+
+
+#Plot number of bins which overestimate rates at different sampling levels
+shifts$bins_over <- as.numeric(as.character(shifts$bins_over))
+
+ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_violin() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
 
