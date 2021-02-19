@@ -35,7 +35,8 @@ add_sp_range <- c(100:1500)    #t1 and t2
 ext_range <- seq(from = 0, to = 50, by = 0.01)
 
 #Create data frames to store results
-results <- data.frame(); differences <- data.frame(); sampling <- data.frame(); gradients <- data.frame()
+results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
+gradients <- data.frame(); shifts <- data.frame()
 
 
 for (x in 1:iterations){
@@ -317,14 +318,35 @@ for (x in 1:iterations){
                         raw_extinction_rank, BC_origination_rank, BC_extinction_rank,
                         tt_origination_rank, tt_extinction_rank)
     gradients <- rbind(gradients, bin_ranks)
+    
+    bin_shifts <- filter(measured_diffs, sampling == sample_pc[h]) %>% filter(bin_size != "global")
+    bin_shifts_or <- filter(bin_shifts, rate == "origination") %>% filter(method == "raw")
+    bin_shifts_er <- filter(bin_shifts, rate == "extinction") %>% filter(method == "raw")
+    bin_shifts_obc <- filter(bin_shifts, rate == "origination") %>% filter(method == "boundary-crosser")
+    bin_shifts_ebc <- filter(bin_shifts, rate == "extinction") %>% filter(method == "boundary-crosser")
+    bin_shifts_ott <- filter(bin_shifts, rate == "origination") %>% filter(method == "three-timer")
+    bin_shifts_ett <- filter(bin_shifts, rate == "extinction") %>% filter(method == "three-timer")
+    
+    #Currently compares using same comparison as "differences" i.e. to 100% values for same method
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0))))
   }
 }
+
+#Add column names to shifts table
+colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
 
 #Save results
 write.csv(results, "data/Sim_res_overall.csv", row.names = F)
 write.csv(differences, "data/Sim_diffs_overall.csv", row.names = F)
 write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
+write.csv(gradients, "data/Sim_grads_overall.csv", row.names = F)
+write.csv(shifts, "data/Sim_shifts_overall.csv", row.names = F)
 
 
 #Summarise results
