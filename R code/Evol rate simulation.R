@@ -4,6 +4,8 @@
 
 #setwd("#####")
 
+library(tidyverse)
+
 ###Designate input parameters###
 
 #Number of iterations
@@ -33,7 +35,7 @@ add_sp_range <- c(100:1500)    #t1 and t2
 ext_range <- seq(from = 0, to = 50, by = 0.01)
 
 #Create data frames to store results
-results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
+results <- data.frame(); differences <- data.frame(); sampling <- data.frame(); gradients <- data.frame()
 
 
 for (x in 1:iterations){
@@ -61,7 +63,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)];
       t0_50[[a]] <- species_ids[1:round((0.5 * length(species_ids)), 0)];
       t0_25[[a]] <- species_ids[1:round((0.25 * length(species_ids)), 0)]} else
-      if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:sample(length(species_ids), 1)]}
+      if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:base::sample(length(species_ids), 1)]}
   }
 
   #Task 2: Facilitate origination and extinction to create t1 and t2
@@ -101,7 +103,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)];
     t1_50[[b]] <- focal_bin1[1:round((0.5 * length(focal_bin1)), 0)];
     t1_25[[b]] <- focal_bin1[1:round((0.25 * length(focal_bin1)), 0)]} else
-      if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:sample(length(focal_bin1), 1)]}
+      if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:base::sample(length(focal_bin1), 1)]}
   }
 
   ###t1 -> t2###
@@ -136,13 +138,13 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)];
     t2_50[[d]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)];
     t2_25[[d]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]} else
-      if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:sample(length(focal_bin2), 1)]}
+      if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:base::sample(length(focal_bin2), 1)]}
   }
   
   #Task 3: Calculate origination and extinction rates for t1, using each sampling level, at global
   #  scale and for individual latitude bands
   
-  #Create dataframes to store results in
+  #Create data frames to store results in
   measured_rates <- data.frame(); measured_diffs <- data.frame(); sampling_3t_est <- data.frame()
   
   #Designate sampling levels, starting with 100%
@@ -299,6 +301,23 @@ for (x in 1:iterations){
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
   sampling <- rbind(sampling, sampling_3t_est)
+  
+  #Task 4: Compare gradient of rates across latitude bands in this iteration
+  
+  for (h in 1:length(sample_pc)){
+    bins_to_rank <- filter(measured_rates, sampling == sample_pc[h]) %>% filter(bin_no != "global")
+    bins_to_rank <- mutate(bins_to_rank,
+                           raw_origination_rank = rank(raw_origination_rate, ties.method = "first"),
+                           raw_extinction_rank = rank(raw_extinction_rate, ties.method = "first"),
+                           BC_origination_rank = rank(BC_origination_pc, ties.method = "first"),
+                           BC_extinction_rank = rank(BC_extinction_pc, ties.method = "first"),
+                           tt_origination_rank = rank(tt_origination_rate, ties.method = "first"),
+                           tt_extinction_rank = rank(tt_extinction_rate, ties.method = "first"))
+    bin_ranks <- select(bins_to_rank, iteration_no, bin_no, sampling, raw_origination_rank,
+                        raw_extinction_rank, BC_origination_rank, BC_extinction_rank,
+                        tt_origination_rank, tt_extinction_rank)
+    gradients <- rbind(gradients, bin_ranks)
+  }
 }
 
 
@@ -309,7 +328,7 @@ write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
 
 
 #Summarise results
-library(tidyverse)
+
 
 #Examine distribution of global "true" origination and extinction rates
 results_g <- filter(results, bin_no == "global") %>% filter(sampling == "100")
