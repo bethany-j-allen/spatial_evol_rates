@@ -307,17 +307,29 @@ for (x in 1:iterations){
   
   for (h in 1:length(sample_pc)){
     bins_to_rank <- filter(measured_rates, sampling == sample_pc[h]) %>% filter(bin_no != "global")
-    bins_to_rank <- mutate(bins_to_rank,
-                           raw_origination_rank = rank(raw_origination_rate, ties.method = "first"),
-                           raw_extinction_rank = rank(raw_extinction_rate, ties.method = "first"),
-                           BC_origination_rank = rank(BC_origination_pc, ties.method = "first"),
-                           BC_extinction_rank = rank(BC_extinction_pc, ties.method = "first"),
-                           tt_origination_rank = rank(tt_origination_rate, ties.method = "first"),
-                           tt_extinction_rank = rank(tt_extinction_rate, ties.method = "first"))
-    bin_ranks <- select(bins_to_rank, iteration_no, bin_no, sampling, raw_origination_rank,
-                        raw_extinction_rank, BC_origination_rank, BC_extinction_rank,
-                        tt_origination_rank, tt_extinction_rank)
-    gradients <- rbind(gradients, bin_ranks)
+    
+    if (h == 1) {true_bin_orig <- as.numeric(bins_to_rank$raw_origination_rate);
+                  true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
+    
+    raw_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate))
+    raw_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate))
+    bc_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc))
+    bc_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc))
+    tt_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate))
+    tt_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
+    
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw", 
+                                    raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate))
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw", 
+                                    raw_ext_spear$statistic, raw_ext_spear$p.value, raw_ext_spear$estimate))
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser", 
+                                    bc_orig_spear$statistic, bc_orig_spear$p.value, bc_orig_spear$estimate))
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser", 
+                                    bc_ext_spear$statistic, bc_ext_spear$p.value, bc_ext_spear$estimate))
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer", 
+                                    tt_orig_spear$statistic, tt_orig_spear$p.value, tt_orig_spear$estimate))
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer", 
+                                    tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate))
     
     bin_shifts <- filter(measured_diffs, sampling == sample_pc[h]) %>% filter(bin_size != "global")
     bin_shifts_or <- filter(bin_shifts, rate == "origination") %>% filter(method == "raw")
@@ -337,7 +349,8 @@ for (x in 1:iterations){
   }
 }
 
-#Add column names to shifts table
+#Add column names to gradients and shifts tables
+colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "S", "p_value", "rho")
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
 
