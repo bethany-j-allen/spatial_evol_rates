@@ -403,10 +403,18 @@ ggplot(sampled_b, aes(x = sampling, y = difference, fill = rate)) + geom_hline(a
   theme_classic()
 
 
+#Plot Spearman's p-values comparing rank order of latitude bins
+gradients$p_value <- as.numeric(as.character(gradients$p_value))
+
+ggplot(gradients, aes(x = sampling, y = p_value, fill = rate)) + geom_hline(aes(yintercept = 0.05)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+
+
 #Plot number of bins which overestimate rates at different sampling levels
 shifts$bins_over <- as.numeric(as.character(shifts$bins_over))
 
-ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) +
   geom_violin() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
