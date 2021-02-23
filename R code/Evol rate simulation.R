@@ -325,7 +325,7 @@ for (x in 1:iterations){
     tt_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate), method = "spearman")
     tt_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate), method = "spearman")
     
-    #Add Spearman's rank otuputs to a list of rate gradients
+    #Add Spearman's rank outputs to a list of rate gradients
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw", 
                                     raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate))
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw", 
@@ -402,7 +402,6 @@ sampled_g <- filter(differences, sampling != "100") %>% filter(bin_size == "glob
 sampled_g$difference <- as.numeric(as.character(sampled_g$difference))
 sampled_b <- filter(differences, sampling != "100") %>% filter(bin_size == "lat_band")
 sampled_b$difference <- as.numeric(as.character(sampled_b$difference))
-
 
 ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
