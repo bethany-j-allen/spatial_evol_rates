@@ -425,7 +425,7 @@ ggplot(gradients, aes(x = sampling, y = p_value, fill = rate)) + geom_hline(aes(
 shifts$bins_over <- as.numeric(as.character(shifts$bins_over))
 
 ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) +
-  geom_violin() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  geom_violin(scale = "width") + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
 
