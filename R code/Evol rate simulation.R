@@ -38,6 +38,9 @@ ext_range <- seq(from = 0, to = 50, by = 0.01)
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
 gradients <- data.frame(); shifts <- data.frame()
 
+#Add a progress bar to show simulation completion
+pb <- txtProgressBar(min = 0, max = iterations, initial = 0, style = 3)
+
 
 for (x in 1:iterations){
 
@@ -306,18 +309,23 @@ for (x in 1:iterations){
   #Task 4: Compare gradient of rates across latitude bands in this iteration
   
   for (h in 1:length(sample_pc)){
+    
+    #Filter rates to one sampling level
     bins_to_rank <- filter(measured_rates, sampling == sample_pc[h]) %>% filter(bin_no != "global")
     
+    #Store 100% sampled values as the benchmark for comparison
     if (h == 1) {true_bin_orig <- as.numeric(bins_to_rank$raw_origination_rate);
                   true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
     
-    raw_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate))
-    raw_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate))
-    bc_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc))
-    bc_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc))
-    tt_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate))
-    tt_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
+    #Compare rates from different methods to the true values using Spearman's rank
+    raw_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "spearman")
+    raw_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate), method = "spearman")
+    bc_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc), method = "spearman")
+    bc_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc), method = "spearman")
+    tt_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate), method = "spearman")
+    tt_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate), method = "spearman")
     
+    #Add Spearman's rank otuputs to a list of rate gradients
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw", 
                                     raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate))
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw", 
@@ -331,6 +339,7 @@ for (x in 1:iterations){
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer", 
                                     tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate))
     
+    #Filter differences to one sampling level, then split into different methods
     bin_shifts <- filter(measured_diffs, sampling == sample_pc[h]) %>% filter(bin_size != "global")
     bin_shifts_or <- filter(bin_shifts, rate == "origination") %>% filter(method == "raw")
     bin_shifts_er <- filter(bin_shifts, rate == "extinction") %>% filter(method == "raw")
@@ -339,6 +348,7 @@ for (x in 1:iterations){
     bin_shifts_ott <- filter(bin_shifts, rate == "origination") %>% filter(method == "three-timer")
     bin_shifts_ett <- filter(bin_shifts, rate == "extinction") %>% filter(method == "three-timer")
     
+    #Count the number of bins where the discrepancy between the true and calculated rates is more than 0
     #Currently compares using same comparison as "differences" i.e. to 100% values for same method
     shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0))))
     shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0))))
@@ -347,6 +357,7 @@ for (x in 1:iterations){
     shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0))))
     shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0))))
   }
+  setTxtProgressBar(pb, x)
 }
 
 #Add column names to gradients and shifts tables
