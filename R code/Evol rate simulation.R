@@ -217,12 +217,12 @@ for (x in 1:iterations){
                                global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
     sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_t1_sampling))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "raw", round(global_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "raw", round(global_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "raw", round(global_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
   }
 
   #Add column names to sampling estimate data frame
@@ -287,12 +287,12 @@ for (x in 1:iterations){
       rates_vector <- c(x, e, sample_pc[g], length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
                           bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
     }
   }
   
@@ -301,7 +301,7 @@ for (x in 1:iterations){
                                 "raw_extinction", "raw_origination_rate", "raw_extinction_rate",
                                 "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
                                 "tt_extinction_rate")
-  colnames(measured_diffs) <- c("iteration_no", "sampling", "bin_size", "rate", "method", "difference")
+  colnames(measured_diffs) <- c("iteration_no", "sampling", "t1_n", "bin_size", "rate", "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
   sampling <- rbind(sampling, sampling_3t_est)
