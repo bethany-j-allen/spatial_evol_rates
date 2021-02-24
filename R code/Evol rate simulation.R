@@ -161,6 +161,11 @@ for (x in 1:iterations){
     t0_global <- unique(unlist(eval(parse(text = paste0("t0_", sample_pc[f])))))
     t1_global <- unique(unlist(eval(parse(text = paste0("t1_", sample_pc[f])))))
     t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[f])))))
+    
+    #Produce global lists of occurrence numbers for the given sampling level
+    t0_occs <- lengths(eval(parse(text = paste0("t0_", sample_pc[f]))))
+    t1_occs <- lengths(eval(parse(text = paste0("t1_", sample_pc[f]))))
+    t2_occs <- lengths(eval(parse(text = paste0("t2_", sample_pc[f]))))
   
     #Raw (these counts include singletons)
     global_orig <- length(setdiff(t1_global, t0_global))   #Present in t1 but not in t0
@@ -212,17 +217,17 @@ for (x in 1:iterations){
     global_3t_ext_diff <- global_3t_ext - global_true_3t_ext
     
     #Add global rates to data frame
-    global_rates <- c(x, "global", sample_pc[f], length(t1_global), global_orig, global_ext,
+    global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), length(t1_global), global_orig, global_ext,
                       (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
                                global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
     sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_t1_sampling))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "raw", round(global_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "raw", round(global_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
   }
 
   #Add column names to sampling estimate data frame
@@ -234,6 +239,10 @@ for (x in 1:iterations){
       
       #Pull out unique occurrences from one latitude band
       focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
+      t0_global <- unique(unlist(eval(parse(text = paste0("t0_", sample_pc[g])))))
+      t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[g])))))
+      
+      focal_bin_t1_occs <- length(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -284,24 +293,24 @@ for (x in 1:iterations){
       bin_3t_ext_diff <- bin_3t_ext - bin_true_3t_ext
   
       #Save in a vector
-      rates_vector <- c(x, e, sample_pc[g], length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
+      rates_vector <- c(x, e, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
                           bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], length(focal_bin_t1), "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
     }
   }
   
   #Label columns in rates data frame
-  colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "t1_n", "raw_origination",
+  colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs", "richness", "raw_origination",
                                 "raw_extinction", "raw_origination_rate", "raw_extinction_rate",
                                 "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
                                 "tt_extinction_rate")
-  colnames(measured_diffs) <- c("iteration_no", "sampling", "t1_n", "bin_size", "rate", "method", "difference")
+  colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate", "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
   sampling <- rbind(sampling, sampling_3t_est)
@@ -399,8 +408,11 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 
 #Plot difference between "true" and measured rates at different sampling levels
 sampled_g <- filter(differences, sampling != "100") %>% filter(bin_size == "global")
+sampled_g$occs <- as.numeric(as.character(sampled_g$occs))
 sampled_g$difference <- as.numeric(as.character(sampled_g$difference))
+
 sampled_b <- filter(differences, sampling != "100") %>% filter(bin_size == "lat_band")
+sampled_b$occs <- as.numeric(as.character(sampled_b$occs))
 sampled_b$difference <- as.numeric(as.character(sampled_b$difference))
 
 ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
@@ -411,6 +423,24 @@ ggplot(sampled_b, aes(x = sampling, y = difference, fill = rate)) + geom_hline(a
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
   theme_classic()
+
+
+#Plot the relationship between sample size and rate differences
+sampled_g_o <- filter(sampled_g, rate == "origination")
+sampled_g_e <- filter(sampled_g, rate == "extinction")
+
+sampled_b_o <- filter(sampled_b, rate == "origination")
+sampled_b_e <- filter(sampled_b, rate == "extinction")
+
+ggplot(sampled_g_o, aes(x = occs, y = difference)) + geom_hline(aes(yintercept = 0)) +
+  geom_point(colour = "lightblue") + facet_wrap(~method + sampling) + theme_classic()
+ggplot(sampled_g_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept = 0)) +
+  geom_point(colour = "salmon") + facet_wrap(~method + sampling) + theme_classic()
+
+ggplot(sampled_b_o, aes(x = occs, y = difference)) + geom_hline(aes(yintercept = 0)) +
+  geom_point(colour = "lightblue") + facet_wrap(~method + sampling) + theme_classic()
+ggplot(sampled_b_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept = 0)) +
+  geom_point(colour = "salmon") + facet_wrap(~method + sampling) + theme_classic()
 
 
 #Plot Spearman's p-values comparing rank order of latitude bins
