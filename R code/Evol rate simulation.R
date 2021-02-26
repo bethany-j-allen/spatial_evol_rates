@@ -5,6 +5,7 @@
 #setwd("#####")
 
 library(tidyverse)
+library(pspearman)
 
 ###Designate input parameters###
 
@@ -327,12 +328,12 @@ for (x in 1:iterations){
                   true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
     
     #Compare rates from different methods to the true values using Spearman's rank
-    raw_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "spearman")
-    raw_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate), method = "spearman")
-    bc_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc), method = "spearman")
-    bc_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc), method = "spearman")
-    tt_orig_spear <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate), method = "spearman")
-    tt_ext_spear <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate), method = "spearman")
+    raw_orig_spear <- spearman.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate))
+    raw_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate))
+    bc_orig_spear <- spearman.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc))
+    bc_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc))
+    tt_orig_spear <- spearman.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate))
+    tt_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
     
     #Add Spearman's rank outputs to a list of rate gradients
     gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw", 
