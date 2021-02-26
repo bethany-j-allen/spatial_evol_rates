@@ -372,14 +372,14 @@ for (x in 1:iterations){
     bin_shifts_ott <- filter(bin_shifts, rate == "origination") %>% filter(method == "three-timer")
     bin_shifts_ett <- filter(bin_shifts, rate == "extinction") %>% filter(method == "three-timer")
     
-    #Count the number of bins where the discrepancy between the true and calculated rates is more than 0
+    #Count the number of bins where the discrepancy between the true and calculated rates is more than 1
     #Currently compares using same comparison as "differences" i.e. to 100% values for same method
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 1))))
   }
   setTxtProgressBar(pb, x)
 }
