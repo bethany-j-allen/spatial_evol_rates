@@ -329,23 +329,23 @@ for (x in 1:iterations){
     
     #Evaluate whether max and min bins are the same
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
-                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$raw_origination_rate)),
-                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$raw_origination_rate))))
+                                    which.min(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
+                                    which.max(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig))))
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
-                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$raw_extinction_rate)),
-                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$raw_extinction_rate))))
+                                    which.min(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
+                                    which.max(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext))))
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
-                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$BC_origination_pc)),
-                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$BC_origination_pc))))
+                                    which.min(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == min(true_bin_orig)),
+                                    which.max(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == max(true_bin_orig))))
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
-                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$BC_extinction_pc)),
-                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$BC_extinction_pc))))
+                                    which.min(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == min(true_bin_ext)),
+                                    which.max(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == max(true_bin_ext))))
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
-                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$tt_origination_rate)),
-                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$tt_origination_rate))))
+                                    which.min(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
+                                    which.max(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig))))
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
-                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$tt_extinction_rate)),
-                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$tt_extinction_rate))))
+                                    which.min(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
+                                    which.max(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext))))
     
     #Compare rates from different methods to the true values using Pearson's correlation coefficient
     raw_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "pearson")
@@ -477,6 +477,19 @@ ggplot(sampled_b_o, aes(x = occs, y = difference)) + geom_hline(aes(yintercept =
   geom_point(colour = "lightblue") + facet_wrap(~method + sampling) + theme_classic()
 ggplot(sampled_b_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept = 1)) +
   geom_point(colour = "salmon") + facet_wrap(~method + sampling) + theme_classic()
+
+
+#Plot number of iterations with matching maximum and minimum rates
+min_same <- extremes %>% group_by(sampling, rate, method) %>% count(min_match) %>% filter(min_match == T)
+max_same <- extremes %>% group_by(sampling, rate, method) %>% count(max_match) %>% filter(max_match == T)
+
+ggplot(min_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = 100)) +
+       geom_col() + facet_wrap(~method + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
+       theme_classic()
+
+ggplot(max_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = 100)) +
+  geom_col() + facet_wrap(~method + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
 
 
 #Plot Pearson's p-values comparing linear correlation of latitude bins
