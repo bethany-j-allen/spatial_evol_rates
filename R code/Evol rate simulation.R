@@ -37,7 +37,7 @@ ext_range <- seq(from = 0, to = 50, by = 0.01)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
-gradients <- data.frame(); shifts <- data.frame()
+extremes <- data.frame(); gradients <- data.frame(); shifts <- data.frame()
 
 #Add a progress bar to show simulation completion
 pb <- txtProgressBar(min = 0, max = iterations, initial = 0, style = 3)
@@ -327,6 +327,26 @@ for (x in 1:iterations){
     if (h == 1) {true_bin_orig <- as.numeric(bins_to_rank$raw_origination_rate);
                   true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
     
+    #Evaluate whether max and min bins are the same
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$raw_origination_rate)),
+                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$raw_origination_rate))))
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$raw_extinction_rate)),
+                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$raw_extinction_rate))))
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$BC_origination_pc)),
+                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$BC_origination_pc))))
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$BC_extinction_pc)),
+                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$BC_extinction_pc))))
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+                                    which.min(true_bin_orig) == which.min(as.numeric(bins_to_rank$tt_origination_rate)),
+                                    which.max(true_bin_orig) == which.max(as.numeric(bins_to_rank$tt_origination_rate))))
+    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+                                    which.min(true_bin_ext) == which.min(as.numeric(bins_to_rank$tt_extinction_rate)),
+                                    which.max(true_bin_ext) == which.max(as.numeric(bins_to_rank$tt_extinction_rate))))
+    
     #Compare rates from different methods to the true values using Pearson's correlation coefficient
     raw_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "pearson")
     raw_ext_cor <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate), method = "pearson")
@@ -385,6 +405,7 @@ for (x in 1:iterations){
 }
 
 #Add column names to gradients and shifts tables
+colnames(extremes) <- c("iteration_no", "sampling", "rate", "method", "min_match", "max_match")
 colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "t", "t.p_value", "cor", "S", "S.p_value", "rho")
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
