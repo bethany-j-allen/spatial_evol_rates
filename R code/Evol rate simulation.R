@@ -327,6 +327,14 @@ for (x in 1:iterations){
     if (h == 1) {true_bin_orig <- as.numeric(bins_to_rank$raw_origination_rate);
                   true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
     
+    #Compare rates from different methods to the true values using Pearson's correlation coefficient
+    raw_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "pearson")
+    raw_ext_cor <- cor.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate), method = "pearson")
+    bc_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$BC_origination_pc), method = "pearson")
+    bc_ext_cor <- cor.test(true_bin_ext, as.numeric(bins_to_rank$BC_extinction_pc), method = "pearson")
+    tt_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate), method = "pearson")
+    tt_ext_cor <- cor.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate), method = "pearson")
+    
     #Compare rates from different methods to the true values using Spearman's rank
     raw_orig_spear <- spearman.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate))
     raw_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$raw_extinction_rate))
@@ -335,18 +343,24 @@ for (x in 1:iterations){
     tt_orig_spear <- spearman.test(true_bin_orig, as.numeric(bins_to_rank$tt_origination_rate))
     tt_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
     
-    #Add Spearman's rank outputs to a list of rate gradients
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw", 
+    #Add test outputs to a list of rate gradients
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+                                    raw_orig_cor$statistic, raw_orig_cor$p.value, raw_orig_cor$estimate,
                                     raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw", 
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+                                    raw_ext_cor$statistic, raw_ext_cor$p.value, raw_ext_cor$estimate,
                                     raw_ext_spear$statistic, raw_ext_spear$p.value, raw_ext_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser", 
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+                                    bc_orig_cor$statistic, bc_orig_cor$p.value, bc_orig_cor$estimate,
                                     bc_orig_spear$statistic, bc_orig_spear$p.value, bc_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser", 
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+                                    bc_ext_cor$statistic, bc_ext_cor$p.value, bc_ext_cor$estimate,
                                     bc_ext_spear$statistic, bc_ext_spear$p.value, bc_ext_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer", 
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+                                    tt_orig_cor$statistic, tt_orig_cor$p.value, tt_orig_cor$estimate,
                                     tt_orig_spear$statistic, tt_orig_spear$p.value, tt_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer", 
+    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+                                    tt_ext_cor$statistic, tt_ext_cor$p.value, tt_ext_cor$estimate,
                                     tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate))
     
     #Filter differences to one sampling level, then split into different methods
@@ -371,7 +385,7 @@ for (x in 1:iterations){
 }
 
 #Add column names to gradients and shifts tables
-colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "S", "p_value", "rho")
+colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "t", "t.p_value", "cor", "S", "S.p_value", "rho")
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
 
@@ -444,11 +458,23 @@ ggplot(sampled_b_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept =
   geom_point(colour = "salmon") + facet_wrap(~method + sampling) + theme_classic()
 
 
+#Plot Pearson's p-values comparing linear correlation of latitude bins
+gradients$t.p_value <- as.numeric(as.character(gradients$t.p_value))
+gradients$cor <- as.numeric(as.character(gradients$cor))
+
+ggplot(gradients, aes(x = sampling, y = t.p_value, fill = rate)) + geom_hline(aes(yintercept = 0.05)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+ggplot(gradients, aes(x = sampling, y = cor, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+
+
 #Plot Spearman's p-values comparing rank order of latitude bins
-gradients$p_value <- as.numeric(as.character(gradients$p_value))
+gradients$S.p_value <- as.numeric(as.character(gradients$S.p_value))
 gradients$rho <- as.numeric(as.character(gradients$rho))
 
-ggplot(gradients, aes(x = sampling, y = p_value, fill = rate)) + geom_hline(aes(yintercept = 0.05)) +
+ggplot(gradients, aes(x = sampling, y = S.p_value, fill = rate)) + geom_hline(aes(yintercept = 0.05)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 ggplot(gradients, aes(x = sampling, y = rho, fill = rate)) + geom_hline(aes(yintercept = 0)) +
