@@ -177,9 +177,9 @@ for (x in 1:iterations){
     #Store 100% sampled values as the benchmark for comparison
     if (f == 1){global_true_orig <- global_orig_p; global_true_ext <- global_ext_p}
     
-    #Compare sampled raw counts to true value
-    global_orig_diff <- global_orig_p - global_true_orig
-    global_ext_diff <- global_ext_p - global_true_ext
+    #Compare sampled raw counts to true value as a ratio
+    global_orig_diff <- global_orig_p / global_true_orig
+    global_ext_diff <- global_ext_p / global_true_ext
 
     #Boundary crosser
     global_originations <- length(setdiff(intersect(t1_global, t2_global), t0_global))
@@ -196,9 +196,9 @@ for (x in 1:iterations){
     #Store 100% sampled values as the benchmark for comparison
     if (f == 1){global_true_bc_orig <- global_bc_orig; global_true_bc_ext <- global_bc_ext}
     
-    #Compare sampled BC rates to 100% value
-    global_bc_orig_diff <- global_bc_orig - global_true_bc_orig
-    global_bc_ext_diff <- global_bc_ext - global_true_bc_ext
+    #Compare sampled BC rates to 100% value as a ratio
+    global_bc_orig_diff <- global_bc_orig / global_true_bc_orig
+    global_bc_ext_diff <- global_bc_ext / global_true_bc_ext
 
     #Three-timer
     #As sampling is being fixed through time, the sampling rate here is calculated from t1
@@ -213,9 +213,9 @@ for (x in 1:iterations){
     #Store 100% sampled values as the benchmark for comparison
     if (f == 1){global_true_3t_orig <- global_3t_orig; global_true_3t_ext <- global_3t_ext}
     
-    #Compare sampled 3T rates to 100% value
-    global_3t_orig_diff <- global_3t_orig - global_true_3t_orig
-    global_3t_ext_diff <- global_3t_ext - global_true_3t_ext
+    #Compare sampled 3T rates to 100% value as a ratio
+    global_3t_orig_diff <- global_3t_orig / global_true_3t_orig
+    global_3t_ext_diff <- global_3t_ext / global_true_3t_ext
     
     #Add global rates to data frame
     global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), length(t1_global), global_orig, global_ext,
