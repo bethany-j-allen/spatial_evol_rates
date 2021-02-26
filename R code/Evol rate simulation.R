@@ -445,8 +445,12 @@ ggplot(sampled_b_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept =
 
 #Plot Spearman's p-values comparing rank order of latitude bins
 gradients$p_value <- as.numeric(as.character(gradients$p_value))
+gradients$rho <- as.numeric(as.character(gradients$rho))
 
 ggplot(gradients, aes(x = sampling, y = p_value, fill = rate)) + geom_hline(aes(yintercept = 0.05)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  theme_classic()
+ggplot(gradients, aes(x = sampling, y = rho, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
