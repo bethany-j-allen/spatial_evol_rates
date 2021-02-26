@@ -483,11 +483,11 @@ ggplot(sampled_b_e, aes(x = occs, y = difference)) + geom_hline(aes(yintercept =
 min_same <- extremes %>% group_by(sampling, rate, method) %>% count(min_match) %>% filter(min_match == T)
 max_same <- extremes %>% group_by(sampling, rate, method) %>% count(max_match) %>% filter(max_match == T)
 
-ggplot(min_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = 100)) +
+ggplot(min_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = iterations)) +
        geom_col() + facet_wrap(~method + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
        theme_classic()
 
-ggplot(max_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = 100)) +
+ggplot(max_same, aes(x = rate, y = n, fill = rate)) + geom_hline(aes(yintercept = iterations)) +
   geom_col() + facet_wrap(~method + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
