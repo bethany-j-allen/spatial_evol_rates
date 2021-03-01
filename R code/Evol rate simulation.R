@@ -193,12 +193,9 @@ for (x in 1:iterations){
     global_bc_ext <- global_extinctions/(global_through + global_extinctions)
                                                        #Per-capita BC extinction proportion
     
-    #Store 100% sampled values as the benchmark for comparison
-    if (f == 1){global_true_bc_orig <- global_bc_orig; global_true_bc_ext <- global_bc_ext}
-    
-    #Compare sampled BC proprotions to 100% value
-    global_bc_orig_diff <- global_bc_orig - global_true_bc_orig
-    global_bc_ext_diff <- global_bc_ext - global_true_bc_ext
+    #Compare sampled BC proportions to 100% value
+    global_bc_orig_diff <- global_bc_orig - global_true_orig
+    global_bc_ext_diff <- global_bc_ext - global_true_ext
 
     #Three-timer
     #As sampling is being fixed through time, the sampling rate here is calculated from t1
@@ -210,12 +207,9 @@ for (x in 1:iterations){
     global_3t_orig <- 1 - (global_3t/(global_t1_sampling*global_2t_2)) #3t origination proportion
     global_3t_ext <- 1 - (global_3t/(global_t1_sampling*global_2t_1))  #3t extinction proportion
     
-    #Store 100% sampled values as the benchmark for comparison
-    if (f == 1){global_true_3t_orig <- global_3t_orig; global_true_3t_ext <- global_3t_ext}
-    
     #Compare sampled 3T proportions to 100% value
-    global_3t_orig_diff <- global_3t_orig - global_true_3t_orig
-    global_3t_ext_diff <- global_3t_ext - global_true_3t_ext
+    global_3t_orig_diff <- global_3t_orig - global_true_orig
+    global_3t_ext_diff <- global_3t_ext - global_true_ext
     
     #Add global rates to data frame
     global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), length(t1_global), global_orig, global_ext,
@@ -271,12 +265,9 @@ for (x in 1:iterations){
       bin_bc_ext <- bin_extinctions/(bin_through + bin_extinctions)
                                                          #Per-capita BC extinction proportion
       
-      #Store 100% sampled values as the benchmark for comparison
-      if (g == 1){bin_true_bc_orig <- bin_bc_orig; bin_true_bc_ext <- bin_bc_ext}
-      
       #Compare sampled BC rates to 100% value
-      bin_bc_orig_diff <- bin_bc_orig - bin_true_bc_orig
-      bin_bc_ext_diff <- bin_bc_ext - bin_true_bc_ext
+      bin_bc_orig_diff <- bin_bc_orig - bin_true_orig
+      bin_bc_ext_diff <- bin_bc_ext - bin_true_ext
   
       #Three-timer - uses global t1 sampling probability
       bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
@@ -286,12 +277,9 @@ for (x in 1:iterations){
       bin_3t_orig <- 1 - (bin_3t/(global_est_sampling*bin_2t_2))      #3t origination proportion
       bin_3t_ext <- 1 - (bin_3t/(global_est_sampling*bin_2t_1))       #3t extinction proportion
       
-      #Store 100% sampled values as the benchmark for comparison
-      if (g == 1){bin_true_3t_orig <- bin_3t_orig; bin_true_3t_ext <- bin_3t_ext}
-      
       #Compare sampled 3T rates to 100% value
-      bin_3t_orig_diff <- bin_3t_orig - bin_true_3t_orig
-      bin_3t_ext_diff <- bin_3t_ext - bin_true_3t_ext
+      bin_3t_orig_diff <- bin_3t_orig - bin_true_orig
+      bin_3t_ext_diff <- bin_3t_ext - bin_true_ext
   
       #Save in a vector
       rates_vector <- c(x, e, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
@@ -392,14 +380,14 @@ for (x in 1:iterations){
     bin_shifts_ott <- filter(bin_shifts, rate == "origination") %>% filter(method == "three-timer")
     bin_shifts_ett <- filter(bin_shifts, rate == "extinction") %>% filter(method == "three-timer")
     
-    #Count the number of bins where the discrepancy between the true and calculated rates is more than 1
+    #Count the number of bins where the discrepancy between the true and calculated rates is more than 0
     #Currently compares using same comparison as "differences" i.e. to 100% values for same method
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 1))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 1))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 1))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 1))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 1))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 1))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0))))
+    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0))))
   }
   setTxtProgressBar(pb, x)
 }
