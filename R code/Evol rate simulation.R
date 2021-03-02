@@ -1,6 +1,6 @@
 #Bethany Allen   22nd September 2020
-#Code to build simulated datasets of species richness within latitude bands for time interval t1
-#  (compared to prior interval t0 and following interval t2)
+#Code to build simulated datasets of species richness within latitude bands
+#Currently uses four time bins (t0, t1, t2, t3) and calculates rates across t1-t2 boundary
 
 #setwd("#####")
 
@@ -71,7 +71,7 @@ for (x in 1:iterations){
       if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:base::sample(length(species_ids), 1)]}
   }
 
-  #Task 2: Facilitate origination and extinction to create t1 and t2
+  #Task 2: Facilitate origination and extinction to create t1, t2 and t3
 
   ###t0 -> t1###
   #Designate number of occurrences to survive (those that don't are local extinctions)
@@ -133,7 +133,7 @@ for (x in 1:iterations){
   for (d in 1:nbins){
     #Pull out one latitude bin
     focal_bin2 <- t1_100[[(d)]]
-    #Remove 'local' extinctions by sampling survivors at random from t0
+    #Remove 'local' extinctions by sampling survivors at random from t1
     focal_bin2 <- base::sample(focal_bin2, size = surv_occs2[d], replace = F)
     #Add origination
     new_occ_ids2 <- base::sample(new_sp2, size = new_occs2[d], replace = T)
@@ -146,7 +146,42 @@ for (x in 1:iterations){
       if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:base::sample(length(focal_bin2), 1)]}
   }
   
-  #Task 3: Calculate origination and extinction rates for t1, using each sampling level, at global
+  ###t2 -> t3###
+  #Designate number of occurrences to survive (those that don't are local extinctions)
+  surv_prop3 <- (base::sample(ext_range, size = nbins, replace = T)/100) #Generate a proportion
+  surv_occs3 <- round((lengths(t2_100) * surv_prop3), digits = 0) #Convert proportion to whole occurrences
+  
+  #Designate new species pool for origination (those present in t1 plus preset additional number)
+  add_sp3 <- base::sample(add_sp_range, 1)
+  new_sp3 <- append(unique(unlist(t2_100)), c((sp + add_sp1 + add_sp2 + 1):(sp + add_sp1 + add_sp2 + add_sp3)))
+  
+  #Designate the number of new occurrences in each latitude bin
+  if (to_vary == "occurrences") {new_occs3 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
+    if (to_vary == "sampling") {new_occs3 <- rep(add_occs_range, nbins)}
+  
+  #Implement extinction and origination on t1
+  #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
+  t3_100 <- list()
+  if (to_vary == "occurrences") {t3_75 <- list(); t3_50 <- list(); t3_25 <- list()} else
+    if (to_vary == "sampling") {t3_0 <- list()}
+  
+  for (e in 1:nbins){
+    #Pull out one latitude bin
+    focal_bin3 <- t2_100[[(e)]]
+    #Remove 'local' extinctions by sampling survivors at random from t2
+    focal_bin3 <- base::sample(focal_bin3, size = surv_occs3[e], replace = F)
+    #Add origination
+    new_occ_ids3 <- base::sample(new_sp3, size = new_occs3[e], replace = T)
+    focal_bin3 <- append(focal_bin3, new_occ_ids3)
+    #Add bin to global list
+    t3_100[[e]] <- focal_bin3
+    if (to_vary == "occurrences") {t3_75[[e]] <- focal_bin3[1:round((0.75 * length(focal_bin3)), 0)];
+    t3_50[[e]] <- focal_bin3[1:round((0.5 * length(focal_bin3)), 0)];
+    t3_25[[e]] <- focal_bin3[1:round((0.25 * length(focal_bin3)), 0)]} else
+      if (to_vary == "sampling") {t3_0[[e]] <- focal_bin3[1:base::sample(length(focal_bin3), 1)]}
+  }
+  
+  #Task 3: Calculate origination and extinction rates, using each sampling level, at global
   #  scale and for individual latitude bands
   
   #Create data frames to store results in
