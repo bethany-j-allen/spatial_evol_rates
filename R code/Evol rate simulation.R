@@ -273,19 +273,19 @@ for (x in 1:iterations){
   colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
   
   #Calculate rates for each latitude bin
-  for (e in 1:nbins){
+  for (j in 1:nbins){
     for (g in 1:length(sample_pc)){
       
       #Pull out unique occurrences from one latitude band
-      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
-      focal_bin_t2 <- unique(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", e, ")]]"))))
+      focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))
+      focal_bin_t2 <- unique(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))
       t0_global <- unique(unlist(eval(parse(text = paste0("t0_", sample_pc[g])))))
       t1_global <- unique(unlist(eval(parse(text = paste0("t1_", sample_pc[g])))))
       t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[g])))))
       t3_global <- unique(unlist(eval(parse(text = paste0("t3_", sample_pc[g])))))
       
-      focal_bin_t1_occs <- length(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
-      focal_bin_t2_occs <- length(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", e, ")]]"))))
+      focal_bin_t1_occs <- length(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))
+      focal_bin_t2_occs <- length(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -337,7 +337,7 @@ for (x in 1:iterations){
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext
   
       #Save in a vector
-      rates_vector <- c(x, e, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs,
+      rates_vector <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs,
                         length(focal_bin_t1), length(focal_bin_t2), bin_orig, bin_ext,
                         (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
