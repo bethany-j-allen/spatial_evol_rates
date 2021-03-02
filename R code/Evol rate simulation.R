@@ -570,6 +570,8 @@ ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) +
 
 
 #Plot sampling level estimated by the 3t method
-sampling$estimated <- as.numeric(as.character(sampling$estimated))
+sampling <- pivot_longer(sampling, cols = c("estimated_o_t1", "estimated_e_t2"), names_to = "rate")
+sampling$value <- as.numeric(as.character(sampling$value))
 sampling$sampled <- as.character(sampling$sampled/100)
-ggplot(sampling, aes(x = sampled, y = estimated)) + geom_boxplot(aes(group = sampled)) + theme_classic()
+ggplot(sampling, aes(x = sampled, y = value, fill = rate)) + geom_boxplot() + 
+  scale_fill_manual(values = c("salmon", "lightblue")) + theme_classic()
