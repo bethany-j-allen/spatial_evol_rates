@@ -197,16 +197,18 @@ for (x in 1:iterations){
     t0_global <- unique(unlist(eval(parse(text = paste0("t0_", sample_pc[f])))))
     t1_global <- unique(unlist(eval(parse(text = paste0("t1_", sample_pc[f])))))
     t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[f])))))
+    t3_global <- unique(unlist(eval(parse(text = paste0("t3_", sample_pc[f])))))
     
     #Produce global lists of occurrence numbers for the given sampling level
     t0_occs <- lengths(eval(parse(text = paste0("t0_", sample_pc[f]))))
     t1_occs <- lengths(eval(parse(text = paste0("t1_", sample_pc[f]))))
     t2_occs <- lengths(eval(parse(text = paste0("t2_", sample_pc[f]))))
+    t3_occs <- lengths(eval(parse(text = paste0("t3_", sample_pc[f]))))
   
     #Raw (these counts include singletons)
-    global_orig <- length(setdiff(t1_global, t0_global))   #Present in t1 but not in t0
+    global_orig <- length(setdiff(t2_global, t1_global))   #Present in t2 but not in t1
     global_ext <- length(setdiff(t1_global, t2_global))    #Present in t1 but not in t2
-    global_orig_p <- global_orig / length(t1_global)
+    global_orig_p <- global_orig / length(t2_global)
     global_ext_p <- global_ext / length(t1_global)
   
     #Store 100% sampled values as the benchmark for comparison
@@ -217,51 +219,58 @@ for (x in 1:iterations){
     global_ext_diff <- global_ext_p - global_true_ext
 
     #Boundary crosser
-    global_originations <- length(setdiff(intersect(t1_global, t2_global), t0_global))
-                                                       #Present in t1 and t2 but not in t0
+    global_originations <- length(setdiff(intersect(t2_global, t3_global), t1_global))
+                                                       #Present in t2 and t3 but not in t1
     global_extinctions <- length(setdiff(intersect(t0_global, t1_global), t2_global))
                                                        #Present in t0 and t1 but not in t2
-    global_through <- length(intersect(t0_global, t2_global))
+    global_through_o <- length(intersect(t1_global, t3_global))
+    global_through_e <- length(intersect(t0_global, t2_global))
                                                        #This = three-timers in perfect sampling
-    global_bc_orig <- global_originations/(global_through + global_originations)
-                                                       #Per-capita BC origination proportion
-    global_bc_ext <- global_extinctions/(global_through + global_extinctions)
-                                                       #Per-capita BC extinction proportion
+    global_bc_orig <- global_originations/(global_through_o + global_originations)
+                                                       #BC origination proportion
+    global_bc_ext <- global_extinctions/(global_through_e + global_extinctions)
+                                                       #BC extinction proportion
     
     #Compare sampled BC proportions to 100% value
     global_bc_orig_diff <- global_bc_orig - global_true_orig
     global_bc_ext_diff <- global_bc_ext - global_true_ext
 
     #Three-timer
-    #As sampling is being fixed through time, the sampling rate here is calculated from t1
-    global_2t_1 <- length(intersect(t0_global, t1_global)) #Present in t0 and t1 irrespective of t2
-    global_2t_2 <- length(intersect(t1_global, t2_global)) #Present in t1 and t2 irrespective of t0
-    global_3t <- length(intersect(intersect(t0_global, t1_global), t2_global)) #Present in all t
-    global_pt <- length(setdiff(intersect(t0_global, t2_global), t1_global)) #t1 ghost ranges
-    global_t1_sampling <- global_3t/(global_3t + global_pt) #Estimate of sampling completeness
-    global_3t_orig <- 1 - (global_3t/(global_t1_sampling*global_2t_2)) #3t origination proportion
-    global_3t_ext <- 1 - (global_3t/(global_t1_sampling*global_2t_1))  #3t extinction proportion
+    global_2t_o <- length(intersect(t2_global, t3_global)) #Present in t2 and t3 irrespective of t1
+    global_2t_e <- length(intersect(t0_global, t1_global)) #Present in t0 and t1 irrespective of t2
+    
+    global_3t_1 <- length(intersect(intersect(t0_global, t1_global), t2_global)) #Present in t0-2
+    global_3t_2 <- length(intersect(intersect(t1_global, t2_global), t3_global)) #Present in t1-3
+
+    global_pt_1 <- length(setdiff(intersect(t0_global, t2_global), t1_global)) #Ghost ranges for t1
+    global_pt_2 <- length(setdiff(intersect(t1_global, t3_global), t2_global)) #Ghost ranges for t2
+    
+    global_sampling_o <- global_3t_1/(global_3t_1 + global_pt_1) #Sampling completeness est. for t1
+    global_sampling_e <- global_3t_2/(global_3t_2 + global_pt_2) #Sampling completeness est. for t2
+    
+    global_3t_orig <- 1 - (global_3t_2/(global_sampling_o*global_2t_o)) #3t origination proportion
+    global_3t_ext <- 1 - (global_3t_1/(global_sampling_e*global_2t_e))  #3t extinction proportion
     
     #Compare sampled 3T proportions to 100% value
     global_3t_orig_diff <- global_3t_orig - global_true_orig
     global_3t_ext_diff <- global_3t_ext - global_true_ext
     
     #Add global rates to data frame
-    global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), length(t1_global), global_orig, global_ext,
-                      (round(c(global_orig_p, global_ext_p, global_bc_orig, global_bc_ext,
-                               global_3t_orig, global_3t_ext), 3)))
+    global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), sum(t2_occs), length(t1_global), length(t2_global),
+                      global_orig, global_ext, (round(c(global_orig_p, global_ext_p, global_bc_orig,
+                                                        global_bc_ext, global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
-    sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_t1_sampling))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "raw", round(global_orig_diff, 3)))
+    sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_sampling_o, global_sampling_e))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "raw", round(global_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
   }
 
   #Add column names to sampling estimate data frame
-  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated")
+  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
   
   #Calculate rates for each latitude bin
   for (e in 1:nbins){
@@ -269,16 +278,20 @@ for (x in 1:iterations){
       
       #Pull out unique occurrences from one latitude band
       focal_bin_t1 <- unique(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
+      focal_bin_t2 <- unique(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", e, ")]]"))))
       t0_global <- unique(unlist(eval(parse(text = paste0("t0_", sample_pc[g])))))
+      t1_global <- unique(unlist(eval(parse(text = paste0("t1_", sample_pc[g])))))
       t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[g])))))
+      t3_global <- unique(unlist(eval(parse(text = paste0("t3_", sample_pc[g])))))
       
       focal_bin_t1_occs <- length(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", e, ")]]"))))
+      focal_bin_t2_occs <- length(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", e, ")]]"))))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
-      bin_orig <- length(setdiff(focal_bin_t1, t0_global))   #Present in t1 band but nowhere in t0
+      bin_orig <- length(setdiff(focal_bin_t2, t1_global))   #Present in t2 band but nowhere in t1
       bin_ext <- length(setdiff(focal_bin_t1, t2_global))    #Present in t1 band but nowhere in t2
-      bin_orig_prop <- bin_orig / length(focal_bin_t1)
+      bin_orig_prop <- bin_orig / length(focal_bin_t2)
       bin_ext_prop <- bin_ext / length(focal_bin_t1)
     
       #Store 100% sampled values as the benchmark for comparison
@@ -289,51 +302,59 @@ for (x in 1:iterations){
       bin_ext_diff <- bin_ext_prop - bin_true_ext
   
       #Boundary crosser
-      bin_originations <- length(setdiff(intersect(focal_bin_t1, t2_global), t0_global))
-                                                         #Present in t1 and t2 but not in t0
+      bin_originations <- length(setdiff(intersect(focal_bin_t2, t3_global), t1_global))
+                                                         #Present in t2 and t3 but not in t1
       bin_extinctions <- length(setdiff(intersect(t0_global, focal_bin_t1), t2_global))
                                                          #Present in t0 and t1 but not in t2
-      bin_through <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global))
+      bin_through_o <- length(intersect(intersect(t1_global, focal_bin_t2), t3_global))
+                                                         #Present in band for t2, globally for t1 & t3
+      bin_through_e <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global))
                                                          #Present in band for t1, globally for t0 & t2
-      bin_bc_orig <- bin_originations/(bin_through + bin_originations)
-                                                         #Per-capita BC origination proportion
-      bin_bc_ext <- bin_extinctions/(bin_through + bin_extinctions)
-                                                         #Per-capita BC extinction proportion
+      bin_bc_orig <- bin_originations/(bin_through_o + bin_originations)
+                                                         #BC origination proportion
+      bin_bc_ext <- bin_extinctions/(bin_through_e + bin_extinctions)
+                                                         #BC extinction proportion
       
       #Compare sampled BC rates to 100% value
       bin_bc_orig_diff <- bin_bc_orig - bin_true_orig
       bin_bc_ext_diff <- bin_bc_ext - bin_true_ext
   
-      #Three-timer - uses global t1 sampling probability
-      bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
-      bin_2t_2 <- length(intersect(focal_bin_t1, t2_global)) #Present in t1 and t2 irrespective of t0
-      bin_3t <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in all t
-      global_est_sampling <- sampling_3t_est$estimated[g]    #Pull the global sampling estimate
-      bin_3t_orig <- 1 - (bin_3t/(global_est_sampling*bin_2t_2))      #3t origination proportion
-      bin_3t_ext <- 1 - (bin_3t/(global_est_sampling*bin_2t_1))       #3t extinction proportion
+      #Three-timer - uses global sampling probability
+      bin_2t_o <- length(intersect(focal_bin_t2, t3_global)) #Present in t2 and t3 irrespective of t1
+      bin_2t_e <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
+      
+      bin_3t_1 <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in t0-2
+      bin_3t_2 <- length(intersect(intersect(t1_global, focal_bin_t2), t3_global)) #Present in t1-3
+      
+      global_est_sampling_o <- sampling_3t_est$estimated_o_t1[g]    #Pull the global sampling estimate
+      global_est_sampling_e <- sampling_3t_est$estimated_e_t2[g]    #Pull the global sampling estimate
+      
+      bin_3t_orig <- 1 - (bin_3t_2/(global_est_sampling_o*bin_2t_o))      #3t origination proportion
+      bin_3t_ext <- 1 - (bin_3t_1/(global_est_sampling_e*bin_2t_e))       #3t extinction proportion
       
       #Compare sampled 3T rates to 100% value
       bin_3t_orig_diff <- bin_3t_orig - bin_true_orig
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext
   
       #Save in a vector
-      rates_vector <- c(x, e, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), bin_orig, bin_ext, (round(c(bin_orig_prop,
-                          bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
+      rates_vector <- c(x, e, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs,
+                        length(focal_bin_t1), length(focal_bin_t2), bin_orig, bin_ext,
+                        (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "boundary-crosser", round(bin_bc_ext_diff, 3)))
-      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
+      measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "three-timer", round(bin_3t_orig_diff, 3)))
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "three-timer", round(bin_3t_ext_diff, 3)))
     }
   }
   
   #Label columns in rates data frame
-  colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs", "richness", "raw_origination",
-                                "raw_extinction", "raw_origination_rate", "raw_extinction_rate",
-                                "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate",
-                                "tt_extinction_rate")
+  colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
+                                "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
+                                "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
+                                "tt_origination_rate", "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate", "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
@@ -351,6 +372,7 @@ for (x in 1:iterations){
                   true_bin_ext <- as.numeric(bins_to_rank$raw_extinction_rate)}
     
     #Evaluate whether max and min bins are the same
+    #(can tolerate ties in the true values, but not in the calculated rates)
     extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
                                     which.min(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
                                     which.max(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig))))
