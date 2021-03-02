@@ -488,11 +488,11 @@ ggplot(results_b, aes(raw_extinction_rate)) +
 
 
 #Plot difference between "true" and measured rates at different sampling levels
-sampled_g <- filter(differences, sampling != "100") %>% filter(bin_size == "global")
+sampled_g <- filter(differences, bin_size == "global")
 sampled_g$occs <- as.numeric(as.character(sampled_g$occs))
 sampled_g$difference <- as.numeric(as.character(sampled_g$difference))
 
-sampled_b <- filter(differences, sampling != "100") %>% filter(bin_size == "lat_band")
+sampled_b <- filter(differences, bin_size == "lat_band")
 sampled_b$occs <- as.numeric(as.character(sampled_b$occs))
 sampled_b$difference <- as.numeric(as.character(sampled_b$difference))
 
