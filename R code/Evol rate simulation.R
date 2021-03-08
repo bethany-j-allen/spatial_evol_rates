@@ -459,6 +459,7 @@ colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 write.csv(results, "data/Sim_res_overall.csv", row.names = F)
 write.csv(differences, "data/Sim_diffs_overall.csv", row.names = F)
 write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
+write.csv(extremes, "data/Sim_extremes_overall.csv", row.names = F)
 write.csv(gradients, "data/Sim_grads_overall.csv", row.names = F)
 write.csv(shifts, "data/Sim_shifts_overall.csv", row.names = F)
 
