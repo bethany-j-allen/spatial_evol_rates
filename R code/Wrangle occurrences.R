@@ -7,17 +7,18 @@
 library(tidyverse)
 
 #Create a vector giving the chronological order of stages
-stages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Induan", "Olenekian",
-            "Anisian", "Ladinian", "Carnian")
+stages <- c("Artinskian", "Kungurian", "Roadian", "Wordian", "Capitanian", "Wuchiapingian",
+            "Changhsingian", "Induan", "Olenekian", "Anisian", "Ladinian", "Carnian", "Norian")
 
 #Create a vector giving the chronological order of substages
-substages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Griesbachian",
-               "Dienerian", "Smithian", "Spathian", "Aegean", "Bithynian", "Pelsonian", "Illyrian",
-               "Fassanian", "Longobardian", "Julian", "Tuvalian")
+substages <- c("Artinskian", "Kungurian", "Roadian", "Wordian", "Capitanian", "Wuchiapingian",
+               "Changhsingian", "Griesbachian", "Dienerian", "Smithian", "Spathian", "Aegean",
+               "Bithynian", "Pelsonian", "Illyrian", "Fassanian", "Longobardian", "Julian",
+               "Tuvalian", "Lacian", "Alaunian", "Sevatian")
 
 
 #Read in dataset
-fossils <- read_csv("data/PT_brach_biv.csv")
+fossils <- read_csv("data/PT_marine_inverts.csv")
 glimpse(fossils)
 
 #Add filters to remove lacustrine occurrences
