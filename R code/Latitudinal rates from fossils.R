@@ -1,5 +1,5 @@
 #Bethany Allen   19th November 2020 (updated 5th December 2020)
-#Code to run boundary crosser and gap-filler methods of calculating origination and extinction rates
+#Code to calculate raw and boundary crosser evolutionary rates by latitude bin
 
 #setwd("#####")
 
@@ -56,7 +56,7 @@ for (i in 1:length(stages)) {
 
 ###Choose stage###
 #Can't choose first or last stage in the vector
-stage <- "Capitanian"
+stage <- "Wordian"
 
 #Find stage in stages vector, and use this to label the t0, t1 and t2 lists
 stage_ID <- match(stage, stages)
@@ -182,14 +182,15 @@ colnames(evol_rates) <- c("clade", "bin", "bin_size", "raw_n", "rate", "method",
 
 #Amend table for plot
 evol_rates_b <- filter(evol_rates, bin != "global")
+evol_rates_b <- filter(evol_rates_b, method == "raw")
 evol_rates_b$bin <- as.numeric(as.character(evol_rates_b$bin))
 evol_rates_b$value <- as.numeric(as.character(evol_rates_b$value))
 
-#Plot
+#Plot -> geom_line(size = 1.5m aes(linetype = method))
 ggplot(evol_rates_b, aes(x = bin, y = value, colour = rate)) +
-  geom_line(size = 1.5, aes(linetype = method)) + geom_point(size = 2) + facet_wrap(~clade) +
+  geom_line(size = 1.5) + geom_point(size = 2) + facet_wrap(~clade) +
   labs(x = "Palaeolatitude", y = "Rate") + 
-  coord_flip() + scale_x_continuous(limits = c(-90, 90)) +
+  coord_flip() + scale_x_continuous(limits = c(-80, 80)) + scale_y_continuous(limits = c(0, 1)) +
   #scale_colour_manual(values = c("blue", "limegreen")) +
   geom_vline(aes(xintercept = 0), colour = "black", size = 0.7) +
   theme_classic()
