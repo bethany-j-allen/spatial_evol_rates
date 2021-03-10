@@ -1,5 +1,5 @@
-#Bethany Allen   19th November 2020 (updated 5th December 2020)
-#Code to calculate raw and boundary crosser evolutionary rates by latitude bin
+#Bethany Allen   19th November 2020 (updated 5th December 2020, 10th March 2021)
+#Code to calculate raw, boundary-crosser and three-timer evolutionary rates by latitude bin
 
 #setwd("#####")
 
@@ -7,22 +7,25 @@
 library(tidyverse)
 
 #Create a vector giving the chronological order of stages
-stages <- c("Roadian", "Wordian", "Capitanian", "Wuchiapingian", "Changhsingian", "Induan", "Olenekian",
-            "Anisian", "Ladinian", "Carnian")
+stages <- c("Artinskian", "Kungurian", "Roadian", "Wordian", "Capitanian", "Wuchiapingian",
+            "Changhsingian", "Induan", "Olenekian", "Anisian", "Ladinian", "Carnian", "Norian")
 
 #Designate latitude bins
 bins <- seq(from = -90, to = 90, by = 30)
 labels <- seq(from = -75, to = 75, by = 30)
 
 #Read in dataset
-fossils <- read_csv("data/PT_brach_biv_clean.csv")
+fossils <- read_csv("data/PT_marine_inverts_clean.csv")
 glimpse(fossils)
 
 ###Designate the taxonomic resolution ("species" or "genera")###
 tax_res <- "species"
 
 #Apply filters
-if (tax_res == "species"){fossils <- filter(fossils, accepted_rank == "species")
+if (tax_res == "species"){fossils <- fossils %>% filter(accepted_rank == "species") %>%
+  filter(!str_detect(identified_name, " cf")) %>% filter(!str_detect(identified_name, " aff")) %>%
+  filter(!str_detect(identified_name, '"')) %>% filter(!str_detect(identified_name, " \\?")) %>%
+  filter(!str_detect(identified_name, "ex gr."))
 } else if (tax_res == "genera"){fossils <- filter(fossils, !is.na(genus))}
 
 
