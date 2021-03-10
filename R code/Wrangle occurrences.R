@@ -47,30 +47,35 @@ for (i in 1:nrow(fossils)){
   if (fossils$early_interval[i] %in% substages & is.na(fossils$late_interval[i])){
     fossils$substage_bin[i] <- fossils$early_interval[i]}
   #If occurrence is dated to Griesbachian/Dienerian or both, it is Induan
-  if (fossils$early_interval[i] %in% substages[6:7] & is.na(fossils$late_interval[i])){
-    fossils$stage_bin[i] <- "Induan"}
-  if (fossils$early_interval[i] == substages[6] & !is.na(fossils$late_interval[i])){
-    if(fossils$late_interval[i] == substages[7]){fossils$stage_bin[i] <- "Induan"}}
-  #If occurrence is dated to Smithian/Spathian or both, it is Olenekian
   if (fossils$early_interval[i] %in% substages[8:9] & is.na(fossils$late_interval[i])){
-    fossils$stage_bin[i] <- "Olenekian"}
+    fossils$stage_bin[i] <- "Induan"}
   if (fossils$early_interval[i] == substages[8] & !is.na(fossils$late_interval[i])){
-    if(fossils$late_interval[i] == substages[9]){fossils$stage_bin[i] <- "Olenekian"}}
+    if(fossils$late_interval[i] == substages[9]){fossils$stage_bin[i] <- "Induan"}}
+  #If occurrence is dated to Smithian/Spathian or both, it is Olenekian
+  if (fossils$early_interval[i] %in% substages[10:11] & is.na(fossils$late_interval[i])){
+    fossils$stage_bin[i] <- "Olenekian"}
+  if (fossils$early_interval[i] == substages[10] & !is.na(fossils$late_interval[i])){
+    if(fossils$late_interval[i] == substages[11]){fossils$stage_bin[i] <- "Olenekian"}}
   #If occurrence is dated to Aegean/Bithynian/Pelsonian/Illyrian or a combination, it is Anisian
-  if (fossils$early_interval[i] %in% substages[10:13] & is.na(fossils$late_interval[i])){
+  if (fossils$early_interval[i] %in% substages[12:15] & is.na(fossils$late_interval[i])){
     fossils$stage_bin[i] <- "Anisian"}
-  if (fossils$early_interval[i] %in% substages[10:13] & !is.na(fossils$late_interval[i])){
-    if(fossils$late_interval[i] %in% substages[11:13]){fossils$stage_bin[i] <- "Anisian"}}
+  if (fossils$early_interval[i] %in% substages[12:15] & !is.na(fossils$late_interval[i])){
+    if(fossils$late_interval[i] %in% substages[13:15]){fossils$stage_bin[i] <- "Anisian"}}
   #If occurrence is dated to Fassanian/Longobardian or both, it is Ladinian
-  if (fossils$early_interval[i] %in% substages[14:15] & is.na(fossils$late_interval[i])){
-    fossils$stage_bin[i] <- "Ladinian"}
-  if (fossils$early_interval[i] == substages[14] & !is.na(fossils$late_interval[i])){
-    if(fossils$late_interval[i] == substages[15]){fossils$stage_bin[i] <- "Ladinian"}}
-  #If occurrence is dated to Julian/Tuvalian or both, it is Carnian
   if (fossils$early_interval[i] %in% substages[16:17] & is.na(fossils$late_interval[i])){
-    fossils$stage_bin[i] <- "Carnian"}
+    fossils$stage_bin[i] <- "Ladinian"}
   if (fossils$early_interval[i] == substages[16] & !is.na(fossils$late_interval[i])){
-    if(fossils$late_interval[i] == substages[17]){fossils$stage_bin[i] <- "Carnian"}}
+    if(fossils$late_interval[i] == substages[17]){fossils$stage_bin[i] <- "Ladinian"}}
+  #If occurrence is dated to Julian/Tuvalian or both, it is Carnian
+  if (fossils$early_interval[i] %in% substages[18:19] & is.na(fossils$late_interval[i])){
+    fossils$stage_bin[i] <- "Carnian"}
+  if (fossils$early_interval[i] == substages[18] & !is.na(fossils$late_interval[i])){
+    if(fossils$late_interval[i] == substages[19]){fossils$stage_bin[i] <- "Carnian"}}
+  #If occurrence is dated to Lacian/Alaunian/Sevatian or a combination, it is Norian
+  if (fossils$early_interval[i] %in% substages[20:22] & is.na(fossils$late_interval[i])){
+    fossils$stage_bin[i] <- "Norian"}
+  if (fossils$early_interval[i] %in% substages[20:22] & !is.na(fossils$late_interval[i])){
+    if(fossils$late_interval[i] %in% substages[21:22]){fossils$stage_bin[i] <- "Norian"}}
 }
 
 #Remove occurrences undated at stage resolution
@@ -103,4 +108,4 @@ fossils <- filter(fossils, !is.na(paleolat_code))
 
 
 ###Save cleaned dataset###
-write.csv(fossils, "data/PT_brach_biv_clean.csv", row.names = F)
+write.csv(fossils, "data/PT_marine_inverts_clean.csv", row.names = F)
