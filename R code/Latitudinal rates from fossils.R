@@ -29,36 +29,61 @@ if (tax_res == "species"){fossils <- fossils %>% filter(accepted_rank == "specie
 } else if (tax_res == "genera"){fossils <- filter(fossils, !is.na(genus))}
 
 
-#Generate list of taxa sampled in each latitude band per stage for both clades
-brachs_list <- list()
-bivs_list <- list()
+#Generate list of taxa sampled in each latitude band per stage for all clades
+brachiopod_list <- list()
+bivalve_list <- list()
+ammonoid_list <- list()
+gastropod_list <- list()
+
 
 for (i in 1:length(stages)) {
   #Filter stage, then separate the clades
   one_stage <- filter(fossils, stage_bin == stages[i])
   stage_brachs <- filter(one_stage, phylum == "Brachiopoda")
-  stage_bivs <- filter(one_stage, phylum == "Mollusca")
+  stage_bivs <- filter(one_stage, class == "Bivalvia")
+  stage_amms <- filter(one_stage, class == "Cephalopoda")
+  stage_gast <- filter(one_stage, class == "Gastropoda")
+  
   #Filter latitude bins, find unique taxa, and put the vector in the list
   for (j in 1:length(labels)){
+    
     brachs_one_bin <- filter(stage_brachs, paleolat_code == labels[j])
     if (tax_res == "species"){brachs_in_bin <- sort(unique(brachs_one_bin$accepted_name))
     } else if (tax_res == "genera"){brachs_in_bin <- sort(unique(brachs_one_bin$genus))}
-    brachs_list[[j]] <- brachs_in_bin
+    brachiopod_list[[j]] <- brachs_in_bin
+    
     bivs_one_bin <- filter(stage_bivs, paleolat_code == labels[j])
     if (tax_res == "species"){bivs_in_bin <- sort(unique(bivs_one_bin$accepted_name))
     } else if (tax_res == "genera"){bivs_in_bin <- sort(unique(bivs_one_bin$genus))}
-    bivs_list[[j]] <- bivs_in_bin
+    bivalve_list[[j]] <- bivs_in_bin
+    
+    amms_one_bin <- filter(stage_amms, paleolat_code == labels[j])
+    if (tax_res == "species"){amms_in_bin <- sort(unique(amms_one_bin$accepted_name))
+    } else if (tax_res == "genera"){amms_in_bin <- sort(unique(amms_one_bin$genus))}
+    ammonoid_list[[j]] <- amms_in_bin
+    
+    gast_one_bin <- filter(stage_gast, paleolat_code == labels[j])
+    if (tax_res == "species"){gast_in_bin <- sort(unique(gast_one_bin$accepted_name))
+    } else if (tax_res == "genera"){gast_in_bin <- sort(unique(gast_one_bin$genus))}
+    gastropod_list[[j]] <- gast_in_bin
   }
+  
   #Save list labelled with its stage name
-  names(brachs_list) <- labels
-  names(bivs_list) <- labels
-  eval(parse(text = paste0(stages[i], "_brachs <- brachs_list")))
-  eval(parse(text = paste0(stages[i], "_bivs <- bivs_list")))
+  names(brachiopod_list) <- labels
+  names(bivalve_list) <- labels
+  names(ammonoid_list) <- labels
+  names(gastropod_list) <- labels
+  
+  eval(parse(text = paste0(stages[i], "_brachiopods <- brachiopod_list")))
+  eval(parse(text = paste0(stages[i], "_bivalves <- bivalve_list")))
+  eval(parse(text = paste0(stages[i], "_ammonoids <- ammonoid_list")))
+  eval(parse(text = paste0(stages[i], "_gastropods <- gastropod_list")))
 }
 
+#Needs updating here with the new code from the simulation
 
 ###Choose stage###
-#Can't choose first or last stage in the vector
+#Can't choose first two or last two in vector
 stage <- "Wordian"
 
 #Find stage in stages vector, and use this to label the t0, t1 and t2 lists
