@@ -194,15 +194,15 @@ colnames(evol_rates) <- c("clade", "bin", "richness", "rate", "method", "value")
 
 #Amend table for plot
 evol_rates_b <- filter(evol_rates, bin != "global")
-evol_rates_b <- filter(evol_rates_b, method == "raw")
 evol_rates_b$bin <- as.numeric(as.character(evol_rates_b$bin))
 evol_rates_b$value <- as.numeric(as.character(evol_rates_b$value))
 
-#Plot -> geom_line(size = 1.5m aes(linetype = method))
-ggplot(evol_rates_b, aes(x = bin, y = value, colour = rate)) +
-  geom_line(size = 1.5) + geom_point(size = 2) + facet_wrap(~clade) +
+#Plot
+ggplot(evol_rates_b, aes(x = bin, y = value, colour = rate, linetype = method)) +
+  geom_line(size = 1.5) + geom_point(size = 2) + facet_wrap(~clade + rate) +
   labs(x = "Palaeolatitude", y = "Rate") + 
   coord_flip() + scale_x_continuous(limits = c(-80, 80)) + scale_y_continuous(limits = c(0, 1)) +
-  #scale_colour_manual(values = c("blue", "limegreen")) +
+  scale_colour_manual(values = c("salmon", "lightblue")) +
+  scale_linetype_manual(values=c("dashed", "solid", "dotted"))+
   geom_vline(aes(xintercept = 0), colour = "black", size = 0.7) +
   theme_classic()
