@@ -89,87 +89,69 @@ stage <- "Wordian"
 #Find stage in stages vector, and use this to label the t0, t1 and t2 lists
 stage_ID <- match(stage, stages)
 
-t0_brachiopods <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_brachiopods")))
-t1_brachiopods <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_brachiopods")))
-t2_brachiopods <- eval(parse(text = paste0(stages[(stage_ID)], "_brachiopods")))
-t3_brachiopods <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_brachiopods")))
-t4_brachiopods <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_brachiopods")))
+#Create vector of clades
+clades <- c("brachiopods", "bivalves", "ammonoids", "gastropods")
 
-t0_bivalves <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_bivalves")))
-t1_bivalves <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_bivalves")))
-t2_bivalves <- eval(parse(text = paste0(stages[(stage_ID)], "_bivalves")))
-t3_bivalves <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_bivalves")))
-t4_bivalves <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_bivalves")))
-
-t0_ammonoids <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_ammonoids")))
-t1_ammonoids <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_ammonoids")))
-t2_ammonoids <- eval(parse(text = paste0(stages[(stage_ID)], "_ammonoids")))
-t3_ammonoids <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_ammonoids")))
-t4_ammonoids <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_ammonoids")))
-
-t0_gastropods <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_gastropods")))
-t1_gastropods <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_gastropods")))
-t2_gastropods <- eval(parse(text = paste0(stages[(stage_ID)], "_gastropods")))
-t3_gastropods <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_gastropods")))
-t4_gastropods <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_gastropods")))
-  
+#Create data frame to store outputs
 evol_rates <- data.frame()
 
-#Produce global lists of unique occurrences (i.e. richness)
-t0_g_brachs <- unique(unlist(t0_brachs))
-t1_g_brachs <- unique(unlist(t1_brachs))
-t2_g_brachs <- unique(unlist(t2_brachs))
-
-t0_g_bivs <- unique(unlist(t0_bivs))
-t1_g_bivs <- unique(unlist(t1_bivs))
-t2_g_bivs <- unique(unlist(t2_bivs))
+for (x in 1:length(clades)){
   
-#Raw (these counts include singletons)
-br_g_orig <- length(setdiff(t1_g_brachs, t0_g_brachs))   #Present in t1 but not in t0
-br_g_ext <- length(setdiff(t1_g_brachs, t2_g_brachs))    #Present in t1 but not in t2
-br_g_orig_p <- br_g_orig / length(t1_g_brachs)
-br_g_ext_p <- br_g_ext / length(t1_g_brachs)
+  #Find relevant time bins
+  t0_occs <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_", clades[x])))
+  t1_occs <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_", clades[x])))
+  t2_occs <- eval(parse(text = paste0(stages[(stage_ID)], "_", clades[x])))
+  t3_occs <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_", clades[x])))
+  t4_occs <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_", clades[x])))
 
-bi_g_orig <- length(setdiff(t1_g_bivs, t0_g_bivs))   #Present in t1 but not in t0
-bi_g_ext <- length(setdiff(t1_g_bivs, t2_g_bivs))    #Present in t1 but not in t2
-bi_g_orig_p <- bi_g_orig / length(t1_g_bivs)
-bi_g_ext_p <- bi_g_ext / length(t1_g_bivs)
-  
-#Boundary crosser
-br_g_originations <- length(setdiff(intersect(t1_g_brachs, t2_g_brachs), t0_g_brachs)) #Present in t1 and t2 but not in t0
-br_g_extinctions <- length(setdiff(intersect(t0_g_brachs, t1_g_brachs), t2_g_brachs))  #Present in t0 and t1 but not in t2
-br_g_through <- length(intersect(t0_g_brachs, t2_g_brachs))                         
-br_g_bc_orig <- log((br_g_through + br_g_originations)/br_g_through)       #Per-capita BC origination rate
-br_g_bc_ext <- log((br_g_through + br_g_extinctions)/br_g_through)         #Per-capita BC extinction rate
+  #Produce global lists of unique occurrences (i.e. richness)
+  t0_g_occs <- unique(unlist(t0_occs))
+  t1_g_occs <- unique(unlist(t1_occs))
+  t2_g_occs <- unique(unlist(t2_occs))
+  t3_g_occs <- unique(unlist(t3_occs))
+  t4_g_occs <- unique(unlist(t4_occs))
 
-bi_g_originations <- length(setdiff(intersect(t1_g_bivs, t2_g_bivs), t0_g_bivs)) #Present in t1 and t2 but not in t0
-bi_g_extinctions <- length(setdiff(intersect(t0_g_bivs, t1_g_bivs), t2_g_bivs))  #Present in t0 and t1 but not in t2
-bi_g_through <- length(intersect(t0_g_bivs, t2_g_bivs))                         
-bi_g_bc_orig <- log((bi_g_through + bi_g_originations)/bi_g_through)       #Per-capita BC origination rate
-bi_g_bc_ext <- log((bi_g_through + bi_g_extinctions)/bi_g_through)         #Per-capita BC extinction rate
+  #Calculate proportions
   
-#Three-timer
-  #As sampling is being fixed through time, the sampling rate here is calculated from t1
-    #global_2t_1 <- length(intersect(t0_global, t1_global)) #Present in t0 and t1 irrespective of t2
-    #global_2t_2 <- length(intersect(t1_global, t2_global)) #Present in t1 and t2 irrespective of t0
-    #global_3t <- length(intersect(intersect(t0_global, t1_global), t2_global)) #Present in all t
-    #global_pt <- length(setdiff(intersect(t0_global, t2_global), t1_global)) #t1 ghost ranges
-    #global_t1_sampling <- global_3t/(global_3t + global_pt)
-    #global_3t_orig <- log(global_2t_2/global_3t) + log(global_t1_sampling) #3t origination rate
-    #global_3t_ext <- log(global_2t_1/global_3t) + log(global_t1_sampling)  #3t extinction rate
-    #global_3t_orig_diff <- global_orig_p - global_3t_orig  #Difference between raw and 3t origination
-    #global_3t_ext_diff <- global_ext_p - global_3t_ext     #Difference between raw and 3t extinction
-  
-#Add global rates to data frames
-evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_orig, "origination", "raw", round(br_g_orig_p, 3)))
-evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_ext, "extinction", "raw", round(br_g_ext_p, 3)))
-evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_orig, "origination", "boundary-crosser", round(br_g_bc_orig, 3)))
-evol_rates <- rbind(evol_rates, c("Brachiopods", "global", length(t1_g_brachs), br_g_ext, "extinction", "boundary-crosser", round(br_g_bc_ext, 3)))
-evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_orig, "origination", "raw", round(bi_g_orig_p, 3)))
-evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_ext, "extinction", "raw", round(bi_g_ext_p, 3)))
-evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_orig, "origination", "boundary-crosser", round(bi_g_bc_orig, 3)))
-evol_rates <- rbind(evol_rates, c("Bivalves", "global", length(t1_g_bivs), bi_g_ext, "extinction", "boundary-crosser", round(bi_g_bc_ext, 3)))
+  #Raw (these counts include singletons)
+  global_orig <- length(setdiff(t2_g_occs, t1_g_occs))   #Present in t2 but not in t1
+  global_ext <- length(setdiff(t2_g_occs, t3_g_occs))    #Present in t2 but not in t3
+  global_orig_p <- global_orig / length(t2_g_occs)
+  global_ext_p <- global_ext / length(t2_g_occs)
 
+  #Boundary crosser
+  global_originations <- length(setdiff(intersect(t2_g_occs, t3_g_occs), t1_g_occs)) #Present in t2 and t3 but not in t1
+  global_extinctions <- length(setdiff(intersect(t1_g_occs, t2_g_occs), t3_g_occs))  #Present in t1 and t2 but not in t3
+  global_through <- length(intersect(t1_g_occs, t3_g_occs))
+  global_bc_orig <- global_originations/(global_through + global_originations) #BC origination proportion
+  global_bc_ext <- global_extinctions/(global_through + global_extinctions)    #BC extinction proportion
+  
+  #Three-timer
+  global_2t_o <- length(intersect(t2_g_occs, t3_g_occs)) #Present in t2 and t3 irrespective of t1
+  global_2t_e <- length(intersect(t1_g_occs, t2_g_occs)) #Present in t1 and t2 irrespective of t3
+  
+  global_3t_1 <- length(intersect(intersect(t0_g_occs, t1_g_occs), t2_g_occs)) #Present in t0-2
+  global_3t_2 <- length(intersect(intersect(t1_g_occs, t2_g_occs), t3_g_occs)) #Present in t1-3
+  global_3t_3 <- length(intersect(intersect(t2_g_occs, t3_g_occs), t4_g_occs)) #Present in t2-4
+  
+  global_pt_1 <- length(setdiff(intersect(t0_g_occs, t2_g_occs), t1_g_occs)) #Ghost ranges for t1
+  global_pt_2 <- length(setdiff(intersect(t2_g_occs, t4_g_occs), t3_g_occs)) #Ghost ranges for t3
+  
+  global_sampling_o <- global_3t_1/(global_3t_1 + global_pt_1) #Sampling completeness est. for t1
+  global_sampling_e <- global_3t_3/(global_3t_3 + global_pt_2) #Sampling completeness est. for t2
+  
+  global_3t_orig <- 1 - (global_3t_2/(global_sampling_o*global_2t_o)) #3t origination proportion
+  global_3t_ext <- 1 - (global_3t_2/(global_sampling_e*global_2t_e))  #3t extinction proportion
+  
+  #Add global rates to data frames
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "origination", "raw", round(global_orig_p, 3)))
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "extinction", "raw", round(global_ext_p, 3)))
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "origination", "boundary-crosser", round(global_bc_orig, 3)))
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "extinction", "boundary-crosser", round(global_bc_ext, 3)))
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "origination", "three-timer", round(global_3t_orig, 3)))
+  evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "extinction", "three-timer", round(global_3t_ext, 3)))
+  
+  
 #Calculate origination and extinction rates for individual latitude bands
   
 for (e in 1:length(labels)){
@@ -220,9 +202,10 @@ for (e in 1:length(labels)){
     evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, "origination", "boundary-crosser", round(bi_b_bc_orig, 3)))
     evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_ext, "extinction", "boundary-crosser", round(bi_b_bc_ext, 3)))
 }
+}
   
 #Label columns in rates data frames
-colnames(evol_rates) <- c("clade", "bin", "bin_size", "raw_n", "rate", "method", "value")
+colnames(evol_rates) <- c("clade", "bin", "richness", "rate", "method", "value")
 
 #Amend table for plot
 evol_rates_b <- filter(evol_rates, bin != "global")
