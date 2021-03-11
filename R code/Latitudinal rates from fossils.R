@@ -89,13 +89,29 @@ stage <- "Wordian"
 #Find stage in stages vector, and use this to label the t0, t1 and t2 lists
 stage_ID <- match(stage, stages)
 
-t0_brachs <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_brachs")))
-t1_brachs <- eval(parse(text = paste0(stages[(stage_ID)], "_brachs")))
-t2_brachs <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_brachs")))
+t0_brachiopods <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_brachiopods")))
+t1_brachiopods <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_brachiopods")))
+t2_brachiopods <- eval(parse(text = paste0(stages[(stage_ID)], "_brachiopods")))
+t3_brachiopods <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_brachiopods")))
+t4_brachiopods <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_brachiopods")))
 
-t0_bivs <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_bivs")))
-t1_bivs <- eval(parse(text = paste0(stages[(stage_ID)], "_bivs")))
-t2_bivs <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_bivs")))
+t0_bivalves <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_bivalves")))
+t1_bivalves <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_bivalves")))
+t2_bivalves <- eval(parse(text = paste0(stages[(stage_ID)], "_bivalves")))
+t3_bivalves <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_bivalves")))
+t4_bivalves <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_bivalves")))
+
+t0_ammonoids <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_ammonoids")))
+t1_ammonoids <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_ammonoids")))
+t2_ammonoids <- eval(parse(text = paste0(stages[(stage_ID)], "_ammonoids")))
+t3_ammonoids <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_ammonoids")))
+t4_ammonoids <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_ammonoids")))
+
+t0_gastropods <- eval(parse(text = paste0(stages[(stage_ID - 2)], "_gastropods")))
+t1_gastropods <- eval(parse(text = paste0(stages[(stage_ID - 1)], "_gastropods")))
+t2_gastropods <- eval(parse(text = paste0(stages[(stage_ID)], "_gastropods")))
+t3_gastropods <- eval(parse(text = paste0(stages[(stage_ID + 1)], "_gastropods")))
+t4_gastropods <- eval(parse(text = paste0(stages[(stage_ID + 2)], "_gastropods")))
   
 evol_rates <- data.frame()
 
