@@ -35,7 +35,6 @@ bivalve_list <- list()
 ammonoid_list <- list()
 gastropod_list <- list()
 
-
 for (i in 1:length(stages)) {
   #Filter stage, then separate the clades
   one_stage <- filter(fossils, stage_bin == stages[i])
@@ -80,7 +79,6 @@ for (i in 1:length(stages)) {
   eval(parse(text = paste0(stages[i], "_gastropods <- gastropod_list")))
 }
 
-#Needs updating here with the new code from the simulation
 
 ###Choose stage###
 #Can't choose first two or last two in vector
@@ -112,7 +110,6 @@ for (x in 1:length(clades)){
   t4_g_occs <- unique(unlist(t4_occs))
 
   #Calculate proportions
-  
   #Raw (these counts include singletons)
   global_orig <- length(setdiff(t2_g_occs, t1_g_occs))   #Present in t2 but not in t1
   global_ext <- length(setdiff(t2_g_occs, t3_g_occs))    #Present in t2 but not in t3
@@ -152,56 +149,44 @@ for (x in 1:length(clades)){
   evol_rates <- rbind(evol_rates, c(clades[x], "global", length(t2_g_occs), "extinction", "three-timer", round(global_3t_ext, 3)))
   
   
-#Calculate origination and extinction rates for individual latitude bands
-  
-for (e in 1:length(labels)){
+  #Calculate origination and extinction rates for individual latitude bands
+  for (y in 1:length(labels)){
+    
     #Pull out one latitude band
-    focal_bin_t1_br <- t1_brachs[[e]]
-    focal_bin_t1_bi <- t1_bivs[[e]]
-    
+    focal_bin_t2 <- t2_occs[[y]]
+
     #Raw (these counts include singletons)
-    br_b_orig <- length(setdiff(focal_bin_t1_br, t0_g_brachs))   #Present in t1 band but nowhere in t0
-    br_b_ext <- length(setdiff(focal_bin_t1_br, t2_g_brachs))    #Present in t1 band but nowhere in t2
-    br_b_orig_prop <- br_b_orig / length(focal_bin_t1_br)
-    br_b_ext_prop <- br_b_ext / length(focal_bin_t1_br)
-    
-    bi_b_orig <- length(setdiff(focal_bin_t1_bi, t0_g_bivs))   #Present in t1 band but nowhere in t0
-    bi_b_ext <- length(setdiff(focal_bin_t1_bi, t2_g_bivs))    #Present in t1 band but nowhere in t2
-    bi_b_orig_prop <- bi_b_orig / length(focal_bin_t1_bi)
-    bi_b_ext_prop <- bi_b_ext / length(focal_bin_t1_bi)
-    
+    bin_orig <- length(setdiff(focal_bin_t2, t1_g_occs))   #Present in t2 but not in t1
+    bin_ext <- length(setdiff(focal_bin_t2, t3_g_occs))    #Present in t2 but not in t3
+    bin_orig_p <- bin_orig / length(focal_bin_t2)
+    bin_ext_p <- bin_ext / length(focal_bin_t2)
+
     #Boundary crosser
-    br_b_originations <- length(setdiff(intersect(focal_bin_t1_br, t2_g_brachs), t0_g_brachs))  #Present in t1 and t2 but not in t0
-    br_b_extinctions <- length(setdiff(intersect(t0_g_brachs, focal_bin_t1_br), t2_g_brachs))   #Present in t0 and t1 but not in t2
-    br_b_through <- length(intersect(intersect(t0_g_brachs, focal_bin_t1_br), t2_g_brachs))     #Present in band for t1, globally for t0 & t2
-    br_b_bc_orig <- log((br_b_through + br_b_originations)/br_b_through)                        #Per-capita BC origination rate
-    br_b_bc_ext <- log((br_b_through + br_b_extinctions)/br_b_through)                          #Per-capita BC extinction rate
+    bin_originations <- length(setdiff(intersect(focal_bin_t2, t3_g_occs), t1_g_occs)) #Present in t2 and t3 but not in t1
+    bin_extinctions <- length(setdiff(intersect(t1_g_occs, focal_bin_t2), t3_g_occs))  #Present in t1 and t2 but not in t3
+    bin_through <- length(intersect(intersect(t1_g_occs, focal_bin_t2), t3_g_occs))    #Present in band for t1, globally for t0 & t2
+    bin_bc_orig <- bin_originations/(bin_through + bin_originations)                   #BC origination proportion
+    bin_bc_ext <- bin_extinctions/(bin_through + bin_extinctions)                      #BC extinction proportion
     
-    bi_b_originations <- length(setdiff(intersect(focal_bin_t1_bi, t2_g_bivs), t0_g_bivs))  #Present in t1 and t2 but not in t0
-    bi_b_extinctions <- length(setdiff(intersect(t0_g_bivs, focal_bin_t1_bi), t2_g_bivs))   #Present in t0 and t1 but not in t2
-    bi_b_through <- length(intersect(intersect(t0_g_bivs, focal_bin_t1_bi), t2_g_bivs))     #Present in band for t1, globally for t0 & t2
-    bi_b_bc_orig <- log((bi_b_through + bi_b_originations)/bi_b_through)                        #Per-capita BC origination rate
-    bi_b_bc_ext <- log((bi_b_through + bi_b_extinctions)/bi_b_through)                          #Per-capita BC extinction rate
+    #Three-timer
+    bin_2t_o <- length(intersect(focal_bin_t2, t3_g_occs)) #Present in t2 and t3 irrespective of t1
+    bin_2t_e <- length(intersect(t1_g_occs, focal_bin_t2)) #Present in t1 and t2 irrespective of t3
+
+    bin_3t <- length(intersect(intersect(t1_g_occs, focal_bin_t2), t3_g_occs)) #Present in t1-3
     
-    #Three-timer - uses global sampling probability
-      #bin_2t_1 <- length(intersect(t0_global, focal_bin_t1)) #Present in t0 and t1 irrespective of t2
-      #bin_2t_2 <- length(intersect(focal_bin_t1, t2_global)) #Present in t1 and t2 irrespective of t0
-      #bin_3t <- length(intersect(intersect(t0_global, focal_bin_t1), t2_global)) #Present in all t
-      #bin_3t_orig <- log(bin_2t_2/bin_3t) + log(global_t1_sampling)      #3t origination rate
-      #bin_3t_ext <- log(bin_2t_1/bin_3t) + log(global_t1_sampling)       #3t extinction rate
-      #bin_3t_orig_diff <- bin_orig_prop - bin_3t_orig  #Difference between raw and 3t origination
-      #bin_3t_ext_diff <- bin_ext_prop - bin_3t_ext     #Difference between raw and 3t extinction
+    #Uses global sampling probabilities
+    
+    bin_3t_orig <- 1 - (bin_3t/(global_sampling_o*bin_2t_o)) #3t origination proportion
+    bin_3t_ext <- 1 - (bin_3t/(global_sampling_e*bin_2t_e))  #3t extinction proportion
     
     #Save in a vector
-    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_orig, "origination", "raw", round(br_b_orig_prop, 3)))
-    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_ext, "extinction", "raw", round(br_b_ext_prop, 3)))
-    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_orig, "origination", "boundary-crosser", round(br_b_bc_orig, 3)))
-    evol_rates <- rbind(evol_rates, c("Brachiopods", labels[e], length(focal_bin_t1_br), br_b_ext, "extinction", "boundary-crosser", round(br_b_bc_ext, 3)))
-    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, "origination", "raw", round(bi_b_orig_prop, 3)))
-    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_ext, "extinction", "raw", round(bi_b_ext_prop, 3)))
-    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_orig, "origination", "boundary-crosser", round(bi_b_bc_orig, 3)))
-    evol_rates <- rbind(evol_rates, c("Bivalves", labels[e], length(focal_bin_t1_bi), bi_b_ext, "extinction", "boundary-crosser", round(bi_b_bc_ext, 3)))
-}
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "origination", "raw", round(bin_orig_p, 3)))
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "extinction", "raw", round(bin_ext_p, 3)))
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "origination", "boundary-crosser", round(bin_bc_orig, 3)))
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "extinction", "boundary-crosser", round(bin_bc_ext, 3)))
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "origination", "three-timer", round(bin_3t_orig, 3)))
+    evol_rates <- rbind(evol_rates, c(clades[x], labels[y], length(focal_bin_t2), "extinction", "three-timer", round(bin_3t_ext, 3)))
+    }
 }
   
 #Label columns in rates data frames
