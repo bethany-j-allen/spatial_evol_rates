@@ -43,6 +43,7 @@ for (p in 1:length(clade)){
 group_by(occ_counts, clade) %>% count(n >= 200)
 
 occ_counts2 <- pivot_wider(occ_counts, names_from = stage, values_from = n)
+write.csv(occ_counts2, "data/Occurrence counts.csv", row.names = F)
 
 #Plot occurrences
 occ_counts_stage <- filter(occ_counts, stage == "Roadian")
