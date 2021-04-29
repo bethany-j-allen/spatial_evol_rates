@@ -29,11 +29,11 @@ add_occs_range <- 500   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(500:2000)        #Initial (t0)
-add_sp_range <- c(100:1500)    #t1 and t2
+sp_range <- c(100:800)        #Initial (t0)
+add_sp_range <- c(0:500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- seq(from = 0, to = 50, by = 0.01)
+ext_range <- seq(from = 0, to = 25, by = 0.01)
 
 #Create data frames to store results
 results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
@@ -199,12 +199,20 @@ for (x in 1:iterations){
     t2_global <- unique(unlist(eval(parse(text = paste0("t2_", sample_pc[f])))))
     t3_global <- unique(unlist(eval(parse(text = paste0("t3_", sample_pc[f])))))
     
-    #Produce global lists of occurrence numbers for the given sampling level
-    t0_occs <- lengths(eval(parse(text = paste0("t0_", sample_pc[f]))))
-    t1_occs <- lengths(eval(parse(text = paste0("t1_", sample_pc[f]))))
-    t2_occs <- lengths(eval(parse(text = paste0("t2_", sample_pc[f]))))
-    t3_occs <- lengths(eval(parse(text = paste0("t3_", sample_pc[f]))))
-  
+    #Produce global occurrence counts for the given sampling level
+    t0_occs <- sum(lengths(eval(parse(text = paste0("t0_", sample_pc[f])))))
+    t1_occs <- sum(lengths(eval(parse(text = paste0("t1_", sample_pc[f])))))
+    t2_occs <- sum(lengths(eval(parse(text = paste0("t2_", sample_pc[f])))))
+    t3_occs <- sum(lengths(eval(parse(text = paste0("t3_", sample_pc[f])))))
+    
+    #Calculate Simpson index for t1 and t2
+    t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[f]))))))
+    t1_tallies <- t1_tallies$Freq
+    t1_Simpson <- (sum(t1_tallies * (t1_tallies - 1)))/(t1_occs * (t1_occs - 1))
+    t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[f]))))))
+    t2_tallies <- t2_tallies$Freq
+    t2_Simpson <- (sum(t2_tallies * (t2_tallies - 1)))/(t2_occs * (t2_occs - 1))
+    
     #Raw (these counts include singletons)
     global_orig <- length(setdiff(t2_global, t1_global))   #Present in t2 but not in t1
     global_ext <- length(setdiff(t1_global, t2_global))    #Present in t1 but not in t2
@@ -256,17 +264,17 @@ for (x in 1:iterations){
     global_3t_ext_diff <- global_3t_ext - global_true_ext
     
     #Add global rates to data frame
-    global_rates <- c(x, "global", sample_pc[f], sum(t1_occs), sum(t2_occs), length(t1_global), length(t2_global),
-                      global_orig, global_ext, (round(c(global_orig_p, global_ext_p, global_bc_orig,
-                                                        global_bc_ext, global_3t_orig, global_3t_ext), 3)))
+    global_rates <- c(x, "global", sample_pc[f], t1_occs, t2_occs, length(t1_global), length(t2_global),
+                      t1_Simpson, t2_Simpson, global_orig, global_ext, (round(c(global_orig_p,
+                      global_ext_p, global_bc_orig, global_bc_ext, global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
     sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_sampling_o, global_sampling_e))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "raw", round(global_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t2_occs), length(t2_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
-    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], sum(t1_occs), length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "raw", round(global_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
+    measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
   }
 
   #Add column names to sampling estimate data frame
@@ -286,6 +294,14 @@ for (x in 1:iterations){
       
       focal_bin_t1_occs <- length(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))
       focal_bin_t2_occs <- length(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))
+      
+      #Calculate Simpson index for t1 and t2
+      fb_t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))))
+      fb_t1_tallies <- fb_t1_tallies$Freq
+      fb_t1_Simpson <- (sum(fb_t1_tallies * (fb_t1_tallies - 1)))/(focal_bin_t1_occs * (focal_bin_t1_occs - 1))
+      fb_t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))))
+      fb_t2_tallies <- fb_t2_tallies$Freq
+      fb_t2_Simpson <- (sum(fb_t2_tallies * (fb_t2_tallies - 1)))/(focal_bin_t2_occs * (focal_bin_t2_occs - 1))
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -337,8 +353,8 @@ for (x in 1:iterations){
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext
   
       #Save in a vector
-      rates_vector <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs,
-                        length(focal_bin_t1), length(focal_bin_t2), bin_orig, bin_ext,
+      rates_vector <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs, length(focal_bin_t1),
+                        length(focal_bin_t2), fb_t1_Simpson, fb_t2_Simpson, bin_orig, bin_ext,
                         (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
@@ -352,9 +368,9 @@ for (x in 1:iterations){
   
   #Label columns in rates data frame
   colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
-                                "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
-                                "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
-                                "tt_origination_rate", "tt_extinction_rate")
+                                "richness_t2", "Simpson_t1" , "Simpson_t2", "raw_origination",
+                                "raw_extinction", "raw_origination_rate", "raw_extinction_rate",
+                                "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate", "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate", "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
@@ -488,6 +504,17 @@ ggplot(results_b, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
 
+#Examine distribution of Simpson indices for relevant time bin
+Simpson_values <- select(results, c(iteration_no, bin_no, sampling, Simpson_t1, Simpson_t2)) %>%
+  pivot_longer(cols = c("Simpson_t1", "Simpson_t2"), names_to = "time_slice", names_prefix = "Simpson_")
+Simpson_values$bin_no[Simpson_values$bin_no != "global"] <- "lat_band"
+Simpson_values$value <- as.numeric(Simpson_values$value)
+ggplot(Simpson_values, aes(x = bin_no, y = value, fill = time_slice)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~time_slice + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
+
+
 #Plot difference between "true" and measured rates at different sampling levels
 sampled_g <- filter(differences, bin_size == "global")
 sampled_g$occs <- as.numeric(as.character(sampled_g$occs))
@@ -589,10 +616,11 @@ ggplot(gradients, aes(x = sampling, y = rho, fill = rate)) + geom_hline(aes(yint
 
 
 #Plot number of bins which overestimate rates at different sampling levels
+shifts <- filter(shifts, sampling != "100")
 shifts$bins_over <- as.numeric(as.character(shifts$bins_over))
 
-ggplot(shifts, aes(x = sampling, y = bins_over, fill = rate)) +
-  geom_violin(scale = "width") + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+ggplot(shifts, aes(x = bins_over, fill = rate)) +
+  geom_bar() + facet_wrap(~method + rate) + scale_fill_manual(values = c("salmon", "lightblue")) +
   theme_classic()
 
 
