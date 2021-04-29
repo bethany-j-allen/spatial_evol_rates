@@ -10,13 +10,13 @@ library(pspearman)
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 1000
+iterations <- 5000
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
 
 #Do occurrences vary against fixed sampling rates, or are occurrences fixed while sampling varies?
-to_vary <- "occurrences"
+to_vary <- "sampling"
 
 #Set occurrence numbers
 #If occurrences vary, this is the upper limit of occurrences in each latitudinal bin
@@ -502,6 +502,32 @@ ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(a
   #scale_y_continuous(limits = c(-1, 1)) +
   theme_classic()
 ggplot(sampled_b, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
+
+
+#Plot difference between "true" and measured rates post-sampling by sampling size or completeness
+sampled_b <- filter(sampled_b, sampling == 0) %>%
+  mutate(size_group = cut_width(occs, width = 100, boundary = 0))
+
+sample_sizes <- filter(results, bin_no != "global") %>%
+  select(iteration_no, bin_no, sampling, occs_t1, occs_t2) %>%
+  pivot_wider(names_from = sampling, values_from = c(occs_t1, occs_t2)) %>%
+  mutate(t1_compl = (occs_t1_0/occs_t1_100)*100) %>% mutate(t2_compl = (occs_t2_0/occs_t2_100)*100)
+
+t1_sampling <- rep(sample_sizes$t1_compl, each = 3)
+t2_sampling <- rep(sample_sizes$t2_compl, each = 3)
+sampling_vector <- c(rbind(t2_sampling, t1_sampling))
+sampled_b <- cbind(sampled_b, sampling_vector)
+sampled_b <- mutate(sampled_b, sampling_group = cut_width(sampling_vector, width = 10, boundary = 0))
+
+ggplot(sampled_b, aes(x = size_group, y = difference, counts_cut_width, fill = rate)) + geom_hline(aes(yintercept = 0)) +
+  geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
+  #scale_y_continuous(limits = c(-1, 1)) +
+  theme_classic()
+
+ggplot(sampled_b, aes(x = sampling_group, y = difference, counts_cut_width, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
   #scale_y_continuous(limits = c(-1, 1)) +
   theme_classic()
