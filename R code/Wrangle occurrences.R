@@ -97,13 +97,16 @@ for (j in 1:nrow(fossils)){
 fossils <- distinct(fossils, accepted_name, collection_no, .keep_all = T)
 
 
+###Rotate palaeo-occurrences if desired - can just use "paleolat" column below for PBDB rotations###
+
+
 ###Allocate occurrences to a latitude bin###
 #Create latitude bins
 bins <- seq(from = -90, to = 90, by = 30)
 labels <- seq(from = -75, to = 75, by = 30)
 
 #Add latitude band as an extra variable to the original dataset
-fossils <- mutate(fossils, paleolat_code = cut(paleolat, breaks = bins, labels = labels))
+fossils <- mutate(fossils, paleolat_code = cut(rot_lat, breaks = bins, labels = labels))
 fossils <- filter(fossils, !is.na(paleolat_code))
 
 
