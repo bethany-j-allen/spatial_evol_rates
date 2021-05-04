@@ -19,7 +19,7 @@ fossils <- read_csv("data/PT_marine_inverts_clean.csv")
 glimpse(fossils)
 
 ###Designate the taxonomic resolution ("species" or "genera")###
-tax_res <- "species"
+tax_res <- "genera"
 
 #Apply filters
 if (tax_res == "species"){fossils <- fossils %>% filter(accepted_rank == "species") %>%
@@ -82,7 +82,7 @@ for (i in 1:length(stages)) {
 
 ###Choose stage###
 #Can't choose first two or last two in vector
-stage <- "Wordian"
+stage <- "Roadian"
 
 #Find stage in stages vector, and use this to label the t0, t1 and t2 lists
 stage_ID <- match(stage, stages)
@@ -191,6 +191,12 @@ for (x in 1:length(clades)){
   
 #Label columns in rates data frames
 colnames(evol_rates) <- c("clade", "bin", "richness", "rate", "method", "value")
+
+evol_rates$richness <- as.numeric(as.character(evol_rates$richness))
+
+for (z in 1:nrow(evol_rates)){
+  if (evol_rates[z,3] < 10){evol_rates[z,6] <- NA}
+}
 
 #Amend table for plot
 evol_rates_b <- filter(evol_rates, bin != "global")
