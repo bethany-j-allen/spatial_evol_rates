@@ -195,7 +195,7 @@ colnames(evol_rates) <- c("clade", "bin", "richness", "rate", "method", "value")
 evol_rates$richness <- as.numeric(as.character(evol_rates$richness))
 
 for (z in 1:nrow(evol_rates)){
-  if (evol_rates[z,3] < 10){evol_rates[z,6] <- NA}
+  if (evol_rates[z,3] < 5){evol_rates[z,6] <- NA}
 }
 
 #Amend table for plot
