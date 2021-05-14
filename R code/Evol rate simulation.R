@@ -10,7 +10,7 @@ library(pspearman)
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 5000
+iterations <- 100
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
@@ -36,7 +36,7 @@ add_sp_range <- c(0:500)    #t1 and t2
 ext_range <- seq(from = 0, to = 25, by = 0.01)
 
 #Create data frames to store results
-results <- data.frame(); differences <- data.frame(); sampling <- data.frame()
+results <- data.frame(); abundances <- data.frame(); differences <- data.frame(); sampling <- data.frame()
 extremes <- data.frame(); gradients <- data.frame(); shifts <- data.frame()
 
 #Add a progress bar to show simulation completion
@@ -205,13 +205,17 @@ for (x in 1:iterations){
     t2_occs <- sum(lengths(eval(parse(text = paste0("t2_", sample_pc[f])))))
     t3_occs <- sum(lengths(eval(parse(text = paste0("t3_", sample_pc[f])))))
     
-    #Calculate Simpson index for t1 and t2
+    #Calculate species abundance distributions for t1 and t2
     t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[f]))))))
     t1_tallies <- t1_tallies$Freq
-    t1_Simpson <- (sum(t1_tallies * (t1_tallies - 1)))/(t1_occs * (t1_occs - 1))
+    t1_tallies <- sort(t1_tallies, decreasing = T)
+    t1_tallies <- append(t1_tallies, rep(0, 1500 - length(t1_tallies)))
+    abundances <- rbind(abundances, c(x, "global", 1, t1_tallies))
     t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[f]))))))
     t2_tallies <- t2_tallies$Freq
-    t2_Simpson <- (sum(t2_tallies * (t2_tallies - 1)))/(t2_occs * (t2_occs - 1))
+    t2_tallies <- sort(t2_tallies, decreasing = T)
+    t2_tallies <- append(t2_tallies, rep(0, 1500 - length(t2_tallies)))
+    abundances <- rbind(abundances, c(x, "global", 2, t2_tallies))
     
     #Raw (these counts include singletons)
     global_orig <- length(setdiff(t2_global, t1_global))   #Present in t2 but not in t1
@@ -265,7 +269,7 @@ for (x in 1:iterations){
     
     #Add global rates to data frame
     global_rates <- c(x, "global", sample_pc[f], t1_occs, t2_occs, length(t1_global), length(t2_global),
-                      t1_Simpson, t2_Simpson, global_orig, global_ext, (round(c(global_orig_p,
+                      global_orig, global_ext, (round(c(global_orig_p,
                       global_ext_p, global_bc_orig, global_bc_ext, global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
     sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_sampling_o, global_sampling_e))
@@ -296,12 +300,17 @@ for (x in 1:iterations){
       focal_bin_t2_occs <- length(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))
       
       #Calculate Simpson index for t1 and t2
-      fb_t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))))
-      fb_t1_tallies <- fb_t1_tallies$Freq
-      fb_t1_Simpson <- (sum(fb_t1_tallies * (fb_t1_tallies - 1)))/(focal_bin_t1_occs * (focal_bin_t1_occs - 1))
-      fb_t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))))
-      fb_t2_tallies <- fb_t2_tallies$Freq
-      fb_t2_Simpson <- (sum(fb_t2_tallies * (fb_t2_tallies - 1)))/(focal_bin_t2_occs * (focal_bin_t2_occs - 1))
+      if (g == 1){
+        fb_t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[g], "[[(", j, ")]]"))))))
+        fb_t1_tallies <- fb_t1_tallies$Freq
+        fb_t1_tallies <- sort(fb_t1_tallies, decreasing = T)
+        fb_t1_tallies <- append(fb_t1_tallies, rep(0, 1500 - length(fb_t1_tallies)))
+        abundances <- rbind(abundances, c(x, j, 1, fb_t1_tallies))
+        fb_t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))))
+        fb_t2_tallies <- fb_t2_tallies$Freq
+        fb_t2_tallies <- sort(fb_t2_tallies, decreasing = T)
+        fb_t2_tallies <- append(fb_t2_tallies, rep(0, 1500 - length(fb_t2_tallies)))
+        abundances <- rbind(abundances, c(x, j, 2, fb_t2_tallies))}
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -354,7 +363,7 @@ for (x in 1:iterations){
   
       #Save in a vector
       rates_vector <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs, length(focal_bin_t1),
-                        length(focal_bin_t2), fb_t1_Simpson, fb_t2_Simpson, bin_orig, bin_ext,
+                        length(focal_bin_t2), bin_orig, bin_ext,
                         (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
       measured_rates <- rbind(measured_rates, rates_vector)
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
@@ -368,10 +377,11 @@ for (x in 1:iterations){
   
   #Label columns in rates data frame
   colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
-                                "richness_t2", "Simpson_t1" , "Simpson_t2", "raw_origination",
-                                "raw_extinction", "raw_origination_rate", "raw_extinction_rate",
-                                "BC_origination_pc", "BC_extinction_pc", "tt_origination_rate", "tt_extinction_rate")
-  colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate", "method", "difference")
+                                "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
+                                "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
+                                "tt_origination_rate", "tt_extinction_rate")
+  colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate",
+                                "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
   sampling <- rbind(sampling, sampling_3t_est)
@@ -465,7 +475,8 @@ for (x in 1:iterations){
   setTxtProgressBar(pb, x)
 }
 
-#Add column names to gradients and shifts tables
+#Add column names to abundances, extremes, gradients, and shifts tables
+colnames(abundances) <- c("iteration_no", "bin_no", "t", 1:1500)
 colnames(extremes) <- c("iteration_no", "sampling", "rate", "method", "min_match", "max_match")
 colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "t", "t.p_value", "cor", "S", "S.p_value", "rho")
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
@@ -473,11 +484,22 @@ colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
 
 ###Save results###
 write.csv(results, "data/Sim_res_overall.csv", row.names = F)
+write.csv(abundances, "data/Sim_abund_overall.csv", row.names = F)
 write.csv(differences, "data/Sim_diffs_overall.csv", row.names = F)
 write.csv(sampling, "data/Sim_samp_overall.csv", row.names = F)
 write.csv(extremes, "data/Sim_extremes_overall.csv", row.names = F)
 write.csv(gradients, "data/Sim_grads_overall.csv", row.names = F)
 write.csv(shifts, "data/Sim_shifts_overall.csv", row.names = F)
+
+
+###Reread results###
+results <- read_csv("data/Sim_res_overall.csv")
+abundances <- read_csv("data/Sim_abund_overall.csv")
+differences <- read_csv("data/Sim_diffs_overall.csv")
+sampling <- read_csv("data/Sim_samp_overall.csv")
+extremes <- read_csv("data/Sim_extremes_overall.csv")
+gradients <- read_csv("data/Sim_grads_overall.csv")
+shifts <- read_csv("data/Sim_shifts_overall.csv")
 
 
 ###Summarise results###
