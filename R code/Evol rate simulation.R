@@ -526,14 +526,32 @@ ggplot(results_b, aes(raw_extinction_rate)) +
   geom_histogram(binwidth = 0.05, colour = "black", fill = "salmon") + theme_classic()
 
 
-#Examine distribution of Simpson indices for relevant time bin
-Simpson_values <- select(results, c(iteration_no, bin_no, sampling, Simpson_t1, Simpson_t2)) %>%
-  pivot_longer(cols = c("Simpson_t1", "Simpson_t2"), names_to = "time_slice", names_prefix = "Simpson_")
-Simpson_values$bin_no[Simpson_values$bin_no != "global"] <- "lat_band"
-Simpson_values$value <- as.numeric(Simpson_values$value)
-ggplot(Simpson_values, aes(x = bin_no, y = value, fill = time_slice)) + geom_hline(aes(yintercept = 0)) +
-  geom_boxplot() + facet_wrap(~time_slice + sampling) + scale_fill_manual(values = c("salmon", "lightblue")) +
-  #scale_y_continuous(limits = c(-1, 1)) +
+#Plot species abundance distributions
+abundances_g <- filter(abundances, bin_no == "global")
+abundances_g <- abundances_g[,4:ncol(abundances_g)]
+abundances_g[] <- lapply(abundances_g, as.numeric)
+mean_abundances_g <- colMeans(abundances_g)
+max_abundances_g <- apply(abundances_g, 2, FUN = max)
+min_abundances_g <- apply(abundances_g, 2, FUN = min)
+abundances_g_sum <- cbind(c(1:ncol(abundances_g)), mean_abundances_g, max_abundances_g, min_abundances_g)
+abundances_g_sum <- as.data.frame(abundances_g_sum)
+ggplot(abundances_g_sum, aes(x = V1, y = mean_abundances_g, ymax = max_abundances_g, ymin = min_abundances_g)) +
+  geom_ribbon(fill = "grey") + geom_line(size = 2, colour = "black") +
+  labs(x = "Species identity", y = "Number of counts") +
+  theme_classic()
+
+abundances_b <- filter(abundances, bin_no != "global")
+abundances_b <- abundances_b[,4:ncol(abundances_b)]
+abundances_b[] <- lapply(abundances_b, as.numeric)
+mean_abundances_b <- colMeans(abundances_b)
+max_abundances_b <- apply(abundances_b, 2, FUN = max)
+min_abundances_b <- apply(abundances_b, 2, FUN = min)
+abundances_b_sum <- cbind(c(1:ncol(abundances_b)), mean_abundances_b, max_abundances_b, min_abundances_b)
+abundances_b_sum <- as.data.frame(abundances_b_sum)
+ggplot(abundances_b_sum, aes(x = V1, y = mean_abundances_b, ymax = max_abundances_b, ymin = min_abundances_b)) +
+  geom_ribbon(fill = "grey") + geom_line(size = 2, colour = "black") +
+  scale_x_continuous(limits = c(0, 750)) +
+  labs(x = "Species identity", y = "Number of counts") +
   theme_classic()
 
 
