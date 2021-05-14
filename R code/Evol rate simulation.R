@@ -10,7 +10,7 @@ library(pspearman)
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 100
+iterations <- 10
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
@@ -22,22 +22,22 @@ to_vary <- "sampling"
 #If occurrences vary, this is the upper limit of occurrences in each latitudinal bin
 #If sampling varies, this is the fixed number of occurrences used
 occs_range <- 1000       #Initial (t0)
-add_occs_range <- 500   #t1 and t2
+add_occs_range <- 300   #t1 and t2
 
 #If occurrences vary, sampling levels are 25%, 50% and 75% of occurrences
 #If sampling varies, it ranges between 0% and 100% of occurrences for each latitude bin
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(100:800)        #Initial (t0)
+sp_range <- c(100:1200)        #Initial (t0)
 add_sp_range <- c(0:500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- seq(from = 0, to = 25, by = 0.01)
+ext_range <- seq(from = 0, to = 5, by = 0.01)
 
 #Create data frames to store results
 results <- data.frame(); abundances <- data.frame(); differences <- data.frame(); sampling <- data.frame()
-extremes <- data.frame(); gradients <- data.frame(); shifts <- data.frame()
+extremes <- list(); gradients <- list(); shifts <- list()
 
 #Add a progress bar to show simulation completion
 pb <- txtProgressBar(min = 0, max = iterations, initial = 0, style = 3)
@@ -399,24 +399,24 @@ for (x in 1:iterations){
     
     #Evaluate whether max and min bins are the same
     #(can tolerate ties in the true values, but not in the calculated rates)
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+    extremes[[(((x-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
                                     which.min(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
-                                    which.max(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig))))
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+                                    which.max(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig)))
+    extremes[[(((x-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
                                     which.min(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
-                                    which.max(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext))))
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+                                    which.max(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext)))
+    extremes[[(((x-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
                                     which.min(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == min(true_bin_orig)),
-                                    which.max(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == max(true_bin_orig))))
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+                                    which.max(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == max(true_bin_orig)))
+    extremes[[(((x-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
                                     which.min(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == min(true_bin_ext)),
-                                    which.max(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == max(true_bin_ext))))
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+                                    which.max(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == max(true_bin_ext)))
+    extremes[[(((x-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
                                     which.min(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
-                                    which.max(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig))))
-    extremes <- rbind(extremes, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+                                    which.max(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig)))
+    extremes[[(((x-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
                                     which.min(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
-                                    which.max(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext))))
+                                    which.max(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext)))
     
     #Compare rates from different methods to the true values using Pearson's correlation coefficient
     raw_orig_cor <- cor.test(true_bin_orig, as.numeric(bins_to_rank$raw_origination_rate), method = "pearson")
@@ -435,24 +435,24 @@ for (x in 1:iterations){
     tt_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
     
     #Add test outputs to a list of rate gradients
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+    gradients[[(((x-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
                                     raw_orig_cor$statistic, raw_orig_cor$p.value, raw_orig_cor$estimate,
-                                    raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+                                    raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate)
+    gradients[[(((x-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
                                     raw_ext_cor$statistic, raw_ext_cor$p.value, raw_ext_cor$estimate,
-                                    raw_ext_spear$statistic, raw_ext_spear$p.value, raw_ext_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+                                    raw_ext_spear$statistic, raw_ext_spear$p.value, raw_ext_spear$estimate)
+    gradients[[(((x-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
                                     bc_orig_cor$statistic, bc_orig_cor$p.value, bc_orig_cor$estimate,
-                                    bc_orig_spear$statistic, bc_orig_spear$p.value, bc_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+                                    bc_orig_spear$statistic, bc_orig_spear$p.value, bc_orig_spear$estimate)
+    gradients[[(((x-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
                                     bc_ext_cor$statistic, bc_ext_cor$p.value, bc_ext_cor$estimate,
-                                    bc_ext_spear$statistic, bc_ext_spear$p.value, bc_ext_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+                                    bc_ext_spear$statistic, bc_ext_spear$p.value, bc_ext_spear$estimate)
+    gradients[[(((x-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
                                     tt_orig_cor$statistic, tt_orig_cor$p.value, tt_orig_cor$estimate,
-                                    tt_orig_spear$statistic, tt_orig_spear$p.value, tt_orig_spear$estimate))
-    gradients <- rbind(gradients, c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+                                    tt_orig_spear$statistic, tt_orig_spear$p.value, tt_orig_spear$estimate)
+    gradients[[(((x-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
                                     tt_ext_cor$statistic, tt_ext_cor$p.value, tt_ext_cor$estimate,
-                                    tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate))
+                                    tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate)
     
     #Filter differences to one sampling level, then split into different methods
     bin_shifts <- filter(measured_diffs, sampling == sample_pc[h]) %>% filter(bin_size != "global")
@@ -465,15 +465,20 @@ for (x in 1:iterations){
     
     #Count the number of bins where the discrepancy between the true and calculated rates is more than 0
     #Currently compares using same comparison as "differences" i.e. to 100% values for same method
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0))))
-    shifts <- rbind(shifts, c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0))))
+    shifts[[(((x-1)*6)+1)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0)))
+    shifts[[(((x-1)*6)+2)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0)))
+    shifts[[(((x-1)*6)+3)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0)))
+    shifts[[(((x-1)*6)+4)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0)))
+    shifts[[(((x-1)*6)+5)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0)))
+    shifts[[(((x-1)*6)+6)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0)))
   }
   setTxtProgressBar(pb, x)
 }
+
+#Convert lists to data frames
+extremes <- data.frame(matrix(unlist(extremes), nrow=length(extremes), byrow=TRUE))
+gradients <- data.frame(matrix(unlist(gradients), nrow=length(gradients), byrow=TRUE))
+shifts <- data.frame(matrix(unlist(shifts), nrow=length(shifts), byrow=TRUE))
 
 #Add column names to abundances, extremes, gradients, and shifts tables
 colnames(abundances) <- c("iteration_no", "bin_no", "t", 1:1500)
@@ -550,7 +555,7 @@ abundances_b_sum <- cbind(c(1:ncol(abundances_b)), mean_abundances_b, max_abunda
 abundances_b_sum <- as.data.frame(abundances_b_sum)
 ggplot(abundances_b_sum, aes(x = V1, y = mean_abundances_b, ymax = max_abundances_b, ymin = min_abundances_b)) +
   geom_ribbon(fill = "grey") + geom_line(size = 2, colour = "black") +
-  scale_x_continuous(limits = c(0, 750)) +
+  scale_x_continuous(limits = c(0, 500)) +
   labs(x = "Species identity", y = "Number of counts") +
   theme_classic()
 
