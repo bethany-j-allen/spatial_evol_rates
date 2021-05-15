@@ -35,8 +35,8 @@ add_sp_range <- c(0:500)    #t1 and t2
 #Range of survival (not extinction) percentages to sample from for t1 and t2
 ext_range <- seq(from = 0, to = 5, by = 0.01)
 
-#Create data frames to store results
-results <- data.frame(); abundances <- list(); differences <- data.frame(); sampling <- list()
+#Create lists to store results (for speed, later converted to data frames)
+results <- list(); abundances <- list(); differences <- data.frame(); sampling <- list()
 extremes <- list(); gradients <- list(); shifts <- list()
 
 #Add a progress bar to show simulation completion
@@ -269,19 +269,23 @@ for (x in 1:iterations){
     global_3t_ext_diff <- global_3t_ext - global_true_ext
     
     #Add global rates to data frame
-    global_rates <- c(x, "global", sample_pc[f], t1_occs, t2_occs, length(t1_global), length(t2_global),
-                      global_orig, global_ext, (round(c(global_orig_p,
-                      global_ext_p, global_bc_orig, global_bc_ext, global_3t_orig, global_3t_ext), 3)))
-    measured_rates <- rbind(measured_rates, global_rates)
+    results[[(((x-1)*14)+f)]] <- c(x, "global", sample_pc[f], t1_occs, t2_occs, length(t1_global),
+                                         length(t2_global), global_orig, global_ext,
+                                         (round(c(global_orig_p, global_ext_p, global_bc_orig,
+                                                  global_bc_ext, global_3t_orig, global_3t_ext), 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "raw", round(global_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
-    sampling[[(((x-1)*(length(sample_pc)))+(f-1)+1)]] <- c(x, sample_pc[f], global_sampling_o, global_sampling_e)
+    sampling[[(((x-1)*(length(sample_pc)))+f)]] <- c(x, sample_pc[f], global_sampling_o, global_sampling_e)
+    sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_sampling_o, global_sampling_e))
   }
 
+  #Add names to sampling estimates
+  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
+  
   #Calculate rates for each latitude bin
   for (j in 1:nbins){
     for (g in 1:length(sample_pc)){
@@ -360,10 +364,9 @@ for (x in 1:iterations){
       bin_3t_ext_diff <- bin_3t_ext - bin_true_ext
   
       #Save in a vector
-      rates_vector <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs, length(focal_bin_t1),
+      results[[((((x-1)*14)+2)+((j-1)*2)+g)]] <- c(x, j, sample_pc[g], focal_bin_t1_occs, focal_bin_t2_occs, length(focal_bin_t1),
                         length(focal_bin_t2), bin_orig, bin_ext,
                         (round(c(bin_orig_prop, bin_ext_prop, bin_bc_orig, bin_bc_ext, bin_3t_orig, bin_3t_ext), 3)))
-      measured_rates <- rbind(measured_rates, rates_vector)
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "raw", round(bin_orig_diff, 3)))
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t1_occs, length(focal_bin_t1), "lat_band", "extinction", "raw", round(bin_ext_diff, 3)))
       measured_diffs <- rbind(measured_diffs, c(x, sample_pc[g], focal_bin_t2_occs, length(focal_bin_t2), "lat_band", "origination", "boundary-crosser", round(bin_bc_orig_diff, 3)))
@@ -374,13 +377,8 @@ for (x in 1:iterations){
   }
   
   #Label columns in rates data frame
-  colnames(measured_rates) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
-                                "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
-                                "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
-                                "tt_origination_rate", "tt_extinction_rate")
   colnames(measured_diffs) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate",
                                 "method", "difference")
-  results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
   
   #Task 4: Compare gradient of rates across latitude bands in this iteration
@@ -388,7 +386,13 @@ for (x in 1:iterations){
   for (h in 1:length(sample_pc)){
     
     #Filter rates to one sampling level
-    bins_to_rank <- filter(measured_rates, sampling == sample_pc[h]) %>% filter(bin_no != "global")
+    bins_to_rank <- results[(length(results)-((2*nbins)+(length(sample_pc)-1))):length(results)]
+    bins_to_rank <- data.frame(matrix(unlist(bins_to_rank), nrow=length(bins_to_rank), byrow=TRUE))
+    colnames(bins_to_rank) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
+                           "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
+                           "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
+                           "tt_origination_rate", "tt_extinction_rate")
+    bins_to_rank <- filter(bins_to_rank, sampling == sample_pc[h]) %>% filter(bin_no != "global")
     
     #Store 100% sampled values as the benchmark for comparison
     if (h == 1) {true_bin_orig <- as.numeric(bins_to_rank$raw_origination_rate);
@@ -473,6 +477,7 @@ for (x in 1:iterations){
 }
 
 #Convert lists to data frames
+results <- data.frame(matrix(unlist(results), nrow=length(results), byrow=TRUE))
 abundances <- data.frame(matrix(unlist(abundances), nrow=length(abundances), byrow=TRUE))
 sampling <- data.frame(matrix(unlist(sampling), nrow=length(sampling), byrow=TRUE))
 extremes <- data.frame(matrix(unlist(extremes), nrow=length(extremes), byrow=TRUE))
@@ -480,6 +485,10 @@ gradients <- data.frame(matrix(unlist(gradients), nrow=length(gradients), byrow=
 shifts <- data.frame(matrix(unlist(shifts), nrow=length(shifts), byrow=TRUE))
 
 #Add column names to abundances, extremes, gradients, and shifts tables
+colnames(results) <- c("iteration_no", "bin_no", "sampling", "occs_t1", "occs_t2", "richness_t1",
+                              "richness_t2", "raw_origination", "raw_extinction", "raw_origination_rate",
+                              "raw_extinction_rate", "BC_origination_pc", "BC_extinction_pc",
+                              "tt_origination_rate", "tt_extinction_rate")
 colnames(abundances) <- c("iteration_no", "bin_no", "t", 1:1500)
 colnames(sampling) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
 colnames(extremes) <- c("iteration_no", "sampling", "rate", "method", "min_match", "max_match")
