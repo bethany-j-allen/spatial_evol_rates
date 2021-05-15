@@ -36,7 +36,7 @@ add_sp_range <- c(0:500)    #t1 and t2
 ext_range <- seq(from = 0, to = 5, by = 0.01)
 
 #Create data frames to store results
-results <- data.frame(); abundances <- list(); differences <- data.frame(); sampling <- data.frame()
+results <- data.frame(); abundances <- list(); differences <- data.frame(); sampling <- list()
 extremes <- list(); gradients <- list(); shifts <- list()
 
 #Add a progress bar to show simulation completion
@@ -206,16 +206,17 @@ for (x in 1:iterations){
     t3_occs <- sum(lengths(eval(parse(text = paste0("t3_", sample_pc[f])))))
     
     #Calculate species abundance distributions for t1 and t2
-    t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[f]))))))
-    t1_tallies <- t1_tallies$Freq
-    t1_tallies <- sort(t1_tallies, decreasing = T)
-    t1_tallies <- append(t1_tallies, rep(0, 1500 - length(t1_tallies)))
-    abundances[[(((x-1)*((2*nbins)+2))+1)]] <- c(x, "global", 1, t1_tallies)
-    t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[f]))))))
-    t2_tallies <- t2_tallies$Freq
-    t2_tallies <- sort(t2_tallies, decreasing = T)
-    t2_tallies <- append(t2_tallies, rep(0, 1500 - length(t2_tallies)))
-    abundances[[(((x-1)*((2*nbins)+2))+2)]] <- c(x, "global", 2, t2_tallies)
+    if (f == 1){
+      t1_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t1_", sample_pc[f]))))))
+      t1_tallies <- t1_tallies$Freq
+      t1_tallies <- sort(t1_tallies, decreasing = T)
+      t1_tallies <- append(t1_tallies, rep(0, 1500 - length(t1_tallies)))
+      abundances[[(((x-1)*((2*nbins)+2))+1)]] <- c(x, "global", 1, t1_tallies)
+      t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[f]))))))
+      t2_tallies <- t2_tallies$Freq
+      t2_tallies <- sort(t2_tallies, decreasing = T)
+      t2_tallies <- append(t2_tallies, rep(0, 1500 - length(t2_tallies)))
+      abundances[[(((x-1)*((2*nbins)+2))+2)]] <- c(x, "global", 2, t2_tallies)}
     
     #Raw (these counts include singletons)
     global_orig <- length(setdiff(t2_global, t1_global))   #Present in t2 but not in t1
@@ -272,18 +273,15 @@ for (x in 1:iterations){
                       global_orig, global_ext, (round(c(global_orig_p,
                       global_ext_p, global_bc_orig, global_bc_ext, global_3t_orig, global_3t_ext), 3)))
     measured_rates <- rbind(measured_rates, global_rates)
-    sampling_3t_est <- rbind(sampling_3t_est, c(x, sample_pc[f], global_sampling_o, global_sampling_e))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "raw", round(global_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "raw", round(global_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "boundary-crosser", round(global_bc_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "boundary-crosser", round(global_bc_ext_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t2_occs, length(t2_global), "global", "origination", "three-timer", round(global_3t_orig_diff, 3)))
     measured_diffs <- rbind(measured_diffs, c(x, sample_pc[f], t1_occs, length(t1_global), "global", "extinction", "three-timer", round(global_3t_ext_diff, 3)))
+    sampling[[(((x-1)*(length(sample_pc)))+(f-1)+1)]] <- c(x, sample_pc[f], global_sampling_o, global_sampling_e)
   }
 
-  #Add column names to sampling estimate data frame
-  colnames(sampling_3t_est) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
-  
   #Calculate rates for each latitude bin
   for (j in 1:nbins){
     for (g in 1:length(sample_pc)){
@@ -384,7 +382,6 @@ for (x in 1:iterations){
                                 "method", "difference")
   results <- rbind(results, measured_rates)
   differences <- rbind(differences, measured_diffs)
-  sampling <- rbind(sampling, sampling_3t_est)
   
   #Task 4: Compare gradient of rates across latitude bands in this iteration
   
@@ -477,12 +474,14 @@ for (x in 1:iterations){
 
 #Convert lists to data frames
 abundances <- data.frame(matrix(unlist(abundances), nrow=length(abundances), byrow=TRUE))
+sampling <- data.frame(matrix(unlist(sampling), nrow=length(sampling), byrow=TRUE))
 extremes <- data.frame(matrix(unlist(extremes), nrow=length(extremes), byrow=TRUE))
 gradients <- data.frame(matrix(unlist(gradients), nrow=length(gradients), byrow=TRUE))
 shifts <- data.frame(matrix(unlist(shifts), nrow=length(shifts), byrow=TRUE))
 
 #Add column names to abundances, extremes, gradients, and shifts tables
 colnames(abundances) <- c("iteration_no", "bin_no", "t", 1:1500)
+colnames(sampling) <- c("iteration_no", "sampled", "estimated_o_t1", "estimated_e_t2")
 colnames(extremes) <- c("iteration_no", "sampling", "rate", "method", "min_match", "max_match")
 colnames(gradients) <- c("iteration_no", "sampling", "rate", "method", "t", "t.p_value", "cor", "S", "S.p_value", "rho")
 colnames(shifts) <- c("iteration_no", "sampling", "rate", "method", "bins_over")
