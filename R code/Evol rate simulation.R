@@ -36,7 +36,7 @@ add_sp_range <- c(0:500)    #t1 and t2
 ext_range <- seq(from = 0, to = 5, by = 0.01)
 
 #Create data frames to store results
-results <- data.frame(); abundances <- data.frame(); differences <- data.frame(); sampling <- data.frame()
+results <- data.frame(); abundances <- list(); differences <- data.frame(); sampling <- data.frame()
 extremes <- list(); gradients <- list(); shifts <- list()
 
 #Add a progress bar to show simulation completion
@@ -210,12 +210,12 @@ for (x in 1:iterations){
     t1_tallies <- t1_tallies$Freq
     t1_tallies <- sort(t1_tallies, decreasing = T)
     t1_tallies <- append(t1_tallies, rep(0, 1500 - length(t1_tallies)))
-    abundances <- rbind(abundances, c(x, "global", 1, t1_tallies))
+    abundances[[(((x-1)*((2*nbins)+2))+1)]] <- c(x, "global", 1, t1_tallies)
     t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[f]))))))
     t2_tallies <- t2_tallies$Freq
     t2_tallies <- sort(t2_tallies, decreasing = T)
     t2_tallies <- append(t2_tallies, rep(0, 1500 - length(t2_tallies)))
-    abundances <- rbind(abundances, c(x, "global", 2, t2_tallies))
+    abundances[[(((x-1)*((2*nbins)+2))+2)]] <- c(x, "global", 2, t2_tallies)
     
     #Raw (these counts include singletons)
     global_orig <- length(setdiff(t2_global, t1_global))   #Present in t2 but not in t1
@@ -305,12 +305,12 @@ for (x in 1:iterations){
         fb_t1_tallies <- fb_t1_tallies$Freq
         fb_t1_tallies <- sort(fb_t1_tallies, decreasing = T)
         fb_t1_tallies <- append(fb_t1_tallies, rep(0, 1500 - length(fb_t1_tallies)))
-        abundances <- rbind(abundances, c(x, j, 1, fb_t1_tallies))
+        abundances[[(((x-1)*((2*nbins)+2))+((j-1)*2)+3)]] <- c(x, j, 1, fb_t1_tallies)
         fb_t2_tallies <- as.data.frame(table(unlist(eval(parse(text = paste0("t2_", sample_pc[g], "[[(", j, ")]]"))))))
         fb_t2_tallies <- fb_t2_tallies$Freq
         fb_t2_tallies <- sort(fb_t2_tallies, decreasing = T)
         fb_t2_tallies <- append(fb_t2_tallies, rep(0, 1500 - length(fb_t2_tallies)))
-        abundances <- rbind(abundances, c(x, j, 2, fb_t2_tallies))}
+        abundances[[(((x-1)*((2*nbins)+2))+((j-1)*2)+4)]] <- c(x, j, 2, fb_t2_tallies)}
   
       #Calculate per-band origination and extinction rates
       #Raw (these counts include singletons)
@@ -476,6 +476,7 @@ for (x in 1:iterations){
 }
 
 #Convert lists to data frames
+abundances <- data.frame(matrix(unlist(abundances), nrow=length(abundances), byrow=TRUE))
 extremes <- data.frame(matrix(unlist(extremes), nrow=length(extremes), byrow=TRUE))
 gradients <- data.frame(matrix(unlist(gradients), nrow=length(gradients), byrow=TRUE))
 shifts <- data.frame(matrix(unlist(shifts), nrow=length(shifts), byrow=TRUE))
