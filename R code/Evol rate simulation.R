@@ -10,7 +10,7 @@ library(pspearman)
 ###Designate input parameters###
 
 #Number of iterations
-iterations <- 10
+iterations <- 100
 
 #Number of latitudinal bins (e.g. 6 -> 30deg bins)
 nbins <- 6
@@ -33,7 +33,7 @@ sp_range <- c(100:1200)        #Initial (t0)
 add_sp_range <- c(0:500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- seq(from = 0, to = 5, by = 0.01)
+ext_range <- seq(from = 0, to = 10, by = 0.01)
 
 #Create lists to store results (for speed, later converted to data frames)
 results <- list(); abundances <- list(); differences <- list(); sampling <- list()
@@ -68,7 +68,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t0_75[[a]] <- species_ids[1:round((0.75 * length(species_ids)), 0)];
       t0_50[[a]] <- species_ids[1:round((0.5 * length(species_ids)), 0)];
       t0_25[[a]] <- species_ids[1:round((0.25 * length(species_ids)), 0)]} else
-      if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:base::sample(length(species_ids), 1)]}
+      if (to_vary == "sampling") {t0_0[[a]] <- species_ids[1:(base::sample(length(species_ids), 1))]}
   }
 
   #Task 2: Facilitate origination and extinction to create t1, t2 and t3
@@ -86,8 +86,7 @@ for (x in 1:iterations){
   new_sp1 <- append(unique(unlist(t0_100)), c((sp + 1):(sp + add_sp1)))
 
   #Designate the number of new occurrences in each latitude bin
-  if (to_vary == "occurrences") {new_occs1 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
-    if (to_vary == "sampling") {new_occs1 <- rep(add_occs_range, nbins)}
+  new_occs1 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)
 
   #Implement extinction and origination on t0
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
@@ -108,7 +107,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t1_75[[b]] <- focal_bin1[1:round((0.75 * length(focal_bin1)), 0)];
     t1_50[[b]] <- focal_bin1[1:round((0.5 * length(focal_bin1)), 0)];
     t1_25[[b]] <- focal_bin1[1:round((0.25 * length(focal_bin1)), 0)]} else
-      if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:base::sample(length(focal_bin1), 1)]}
+      if (to_vary == "sampling") {t1_0[[b]] <- focal_bin1[1:(base::sample(length(focal_bin1), 1))]}
   }
 
   ###t1 -> t2###
@@ -121,8 +120,7 @@ for (x in 1:iterations){
   new_sp2 <- append(unique(unlist(t1_100)), c((sp + add_sp1 + 1):(sp + add_sp1 + add_sp2)))
 
   #Designate the number of new occurrences in each latitude bin
-  if (to_vary == "occurrences") {new_occs2 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
-    if (to_vary == "sampling") {new_occs2 <- rep(add_occs_range, nbins)}
+  new_occs2 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)
 
   #Implement extinction and origination on t1
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
@@ -143,7 +141,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t2_75[[d]] <- focal_bin2[1:round((0.75 * length(focal_bin2)), 0)];
     t2_50[[d]] <- focal_bin2[1:round((0.5 * length(focal_bin2)), 0)];
     t2_25[[d]] <- focal_bin2[1:round((0.25 * length(focal_bin2)), 0)]} else
-      if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:base::sample(length(focal_bin2), 1)]}
+      if (to_vary == "sampling") {t2_0[[d]] <- focal_bin2[1:(base::sample(length(focal_bin2), 1))]}
   }
   
   ###t2 -> t3###
@@ -156,8 +154,7 @@ for (x in 1:iterations){
   new_sp3 <- append(unique(unlist(t2_100)), c((sp + add_sp1 + add_sp2 + 1):(sp + add_sp1 + add_sp2 + add_sp3)))
   
   #Designate the number of new occurrences in each latitude bin
-  if (to_vary == "occurrences") {new_occs3 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)} else
-    if (to_vary == "sampling") {new_occs3 <- rep(add_occs_range, nbins)}
+  new_occs3 <- base::sample(c(0:add_occs_range), size = nbins, replace = T)
   
   #Implement extinction and origination on t1
   #Create lists to document IDs of all occurrences, and samples of 75%, 50% and 25% of occurrences
@@ -178,7 +175,7 @@ for (x in 1:iterations){
     if (to_vary == "occurrences") {t3_75[[e]] <- focal_bin3[1:round((0.75 * length(focal_bin3)), 0)];
     t3_50[[e]] <- focal_bin3[1:round((0.5 * length(focal_bin3)), 0)];
     t3_25[[e]] <- focal_bin3[1:round((0.25 * length(focal_bin3)), 0)]} else
-      if (to_vary == "sampling") {t3_0[[e]] <- focal_bin3[1:base::sample(length(focal_bin3), 1)]}
+      if (to_vary == "sampling") {t3_0[[e]] <- focal_bin3[1:(base::sample(length(focal_bin3), 1))]}
   }
   
   #Task 3: Calculate origination and extinction rates, using each sampling level, at global
@@ -397,22 +394,22 @@ for (x in 1:iterations){
     
     #Evaluate whether max and min bins are the same
     #(can tolerate ties in the true values, but not in the calculated rates)
-    extremes[[(((x-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
                                     which.min(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
                                     which.max(as.numeric(bins_to_rank$raw_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig)))
-    extremes[[(((x-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
                                     which.min(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
                                     which.max(as.numeric(bins_to_rank$raw_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext)))
-    extremes[[(((x-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
                                     which.min(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == min(true_bin_orig)),
                                     which.max(as.numeric(bins_to_rank$BC_origination_pc)) %in% which(true_bin_orig == max(true_bin_orig)))
-    extremes[[(((x-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
                                     which.min(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == min(true_bin_ext)),
                                     which.max(as.numeric(bins_to_rank$BC_extinction_pc)) %in% which(true_bin_ext == max(true_bin_ext)))
-    extremes[[(((x-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
                                     which.min(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == min(true_bin_orig)),
                                     which.max(as.numeric(bins_to_rank$tt_origination_rate)) %in% which(true_bin_orig == max(true_bin_orig)))
-    extremes[[(((x-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+    extremes[[(((x-1)*6*length(sample_pc))+((h-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
                                     which.min(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == min(true_bin_ext)),
                                     which.max(as.numeric(bins_to_rank$tt_extinction_rate)) %in% which(true_bin_ext == max(true_bin_ext)))
     
@@ -433,22 +430,22 @@ for (x in 1:iterations){
     tt_ext_spear <- spearman.test(true_bin_ext, as.numeric(bins_to_rank$tt_extinction_rate))
     
     #Add test outputs to a list of rate gradients
-    gradients[[(((x-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+1)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "raw",
                                     raw_orig_cor$statistic, raw_orig_cor$p.value, raw_orig_cor$estimate,
                                     raw_orig_spear$statistic, raw_orig_spear$p.value, raw_orig_spear$estimate)
-    gradients[[(((x-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+2)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "raw",
                                     raw_ext_cor$statistic, raw_ext_cor$p.value, raw_ext_cor$estimate,
                                     raw_ext_spear$statistic, raw_ext_spear$p.value, raw_ext_spear$estimate)
-    gradients[[(((x-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+3)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "boundary-crosser",
                                     bc_orig_cor$statistic, bc_orig_cor$p.value, bc_orig_cor$estimate,
                                     bc_orig_spear$statistic, bc_orig_spear$p.value, bc_orig_spear$estimate)
-    gradients[[(((x-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+4)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "boundary-crosser",
                                     bc_ext_cor$statistic, bc_ext_cor$p.value, bc_ext_cor$estimate,
                                     bc_ext_spear$statistic, bc_ext_spear$p.value, bc_ext_spear$estimate)
-    gradients[[(((x-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+5)]] <- c(bins_to_rank[1,1], sample_pc[h], "origination", "three-timer",
                                     tt_orig_cor$statistic, tt_orig_cor$p.value, tt_orig_cor$estimate,
                                     tt_orig_spear$statistic, tt_orig_spear$p.value, tt_orig_spear$estimate)
-    gradients[[(((x-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
+    gradients[[(((x-1)*6*length(sample_pc))+((h-1)*6)+6)]] <- c(bins_to_rank[1,1], sample_pc[h], "extinction", "three-timer",
                                     tt_ext_cor$statistic, tt_ext_cor$p.value, tt_ext_cor$estimate,
                                     tt_ext_spear$statistic, tt_ext_spear$p.value, tt_ext_spear$estimate)
     
@@ -458,7 +455,7 @@ for (x in 1:iterations){
     colnames(bin_shifts) <- c("iteration_no", "sampling", "occs", "richness", "bin_size", "rate",
                                "method", "difference")
     bin_shifts <- filter(bin_shifts, bin_size != "global")
-    bin_shifts[] <- lapply(bin_shifts, as.numeric)
+    bin_shifts$sampling <- as.numeric(bin_shifts$sampling)
     bin_shifts <- filter(bin_shifts, sampling == sample_pc[h])
 
     bin_shifts_or <- filter(bin_shifts, rate == "origination") %>% filter(method == "raw")
@@ -470,12 +467,12 @@ for (x in 1:iterations){
     
     #Count the number of bins where the discrepancy between the true and calculated rates is more than 0
     #Currently compares using same comparison as "differences" i.e. to 100% values for same method
-    shifts[[(((x-1)*6)+1)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0)))
-    shifts[[(((x-1)*6)+2)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0)))
-    shifts[[(((x-1)*6)+3)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0)))
-    shifts[[(((x-1)*6)+4)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0)))
-    shifts[[(((x-1)*6)+5)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0)))
-    shifts[[(((x-1)*6)+6)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+1)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "raw", sum(as.numeric(bin_shifts_or$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+2)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "raw", sum(as.numeric(bin_shifts_er$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+3)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "boundary-crosser", sum(as.numeric(bin_shifts_obc$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+4)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "boundary-crosser", sum(as.numeric(bin_shifts_ebc$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+5)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "origination", "three-timer", sum(as.numeric(bin_shifts_ott$difference > 0)))
+    shifts[[(((x-1)*6*length(sample_pc))+((h-1)*6)+6)]] <- c(bin_shifts[1,1], bin_shifts[1,2], "extinction", "three-timer", sum(as.numeric(bin_shifts_ett$difference > 0)))
   }
   setTxtProgressBar(pb, x)
 }
@@ -601,8 +598,10 @@ sampled_b <- filter(sampled_b, sampling == 0) %>%
 
 sample_sizes <- filter(results, bin_no != "global") %>%
   select(iteration_no, bin_no, sampling, occs_t1, occs_t2) %>%
-  pivot_wider(names_from = sampling, values_from = c(occs_t1, occs_t2)) %>%
-  mutate(t1_compl = (occs_t1_0/occs_t1_100)*100) %>% mutate(t2_compl = (occs_t2_0/occs_t2_100)*100)
+  pivot_wider(names_from = sampling, values_from = c(occs_t1, occs_t2))
+sample_sizes[] <- lapply(sample_sizes, as.numeric)
+sample_sizes <- mutate(sample_sizes, t1_compl = (occs_t1_0/occs_t1_100)*100) %>%
+  mutate(t2_compl = (occs_t2_0/occs_t2_100)*100)
 
 t1_sampling <- rep(sample_sizes$t1_compl, each = 3)
 t2_sampling <- rep(sample_sizes$t2_compl, each = 3)
