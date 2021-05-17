@@ -29,11 +29,11 @@ add_occs_range <- 300   #t1 and t2
 
 #Limits for number of species in initial and additional global species pools
 #Ranges from roughly 100 to 800 for each clade in the empirical data
-sp_range <- c(100:1200)        #Initial (t0)
+sp_range <- c(100:800)        #Initial (t0)
 add_sp_range <- c(0:500)    #t1 and t2
 
 #Range of survival (not extinction) percentages to sample from for t1 and t2
-ext_range <- seq(from = 0, to = 10, by = 0.01)
+ext_range <- seq(from = 0, to = 40, by = 0.01)
 
 #Create lists to store results (for speed, later converted to data frames)
 results <- list(); abundances <- list(); differences <- list(); sampling <- list()
@@ -600,14 +600,11 @@ sample_sizes <- filter(results, bin_no != "global") %>%
   select(iteration_no, bin_no, sampling, occs_t1, occs_t2) %>%
   pivot_wider(names_from = sampling, values_from = c(occs_t1, occs_t2))
 sample_sizes[] <- lapply(sample_sizes, as.numeric)
-sample_sizes <- mutate(sample_sizes, t1_compl = (occs_t1_0/occs_t1_100)*100) %>%
-  mutate(t2_compl = (occs_t2_0/occs_t2_100)*100)
+sample_sizes <- mutate(sample_sizes, avg_sampling = (occs_t1_0 + occs_t2_0)/(occs_t1_100 + occs_t2_100))
 
-t1_sampling <- rep(sample_sizes$t1_compl, each = 3)
-t2_sampling <- rep(sample_sizes$t2_compl, each = 3)
-sampling_vector <- c(rbind(t2_sampling, t1_sampling))
-sampled_b <- cbind(sampled_b, sampling_vector)
-sampled_b <- mutate(sampled_b, sampling_group = cut_width(sampling_vector, width = 10, boundary = 0))
+mean_sampling <- rep(sample_sizes$avg_sampling, each = 6)
+sampled_b <- cbind(sampled_b, mean_sampling)
+sampled_b <- mutate(sampled_b, sampling_group = cut_width(mean_sampling, width = 0.1, boundary = 0))
 
 ggplot(sampled_b, aes(x = size_group, y = difference, counts_cut_width, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
