@@ -8,13 +8,13 @@ library(pspearman)
 
 
 ###Reread results###
-results <- read_csv("data/Sim_res_overall.csv")
-abundances <- read_csv("data/Sim_abund_overall.csv")
-differences <- read_csv("data/Sim_diffs_overall.csv")
-sampling <- read_csv("data/Sim_samp_overall.csv")
-extremes <- read_csv("data/Sim_extremes_overall.csv")
-gradients <- read_csv("data/Sim_grads_overall.csv")
-shifts <- read_csv("data/Sim_shifts_overall.csv")
+results <- read_csv("data/Sim_res_overall_main.csv")
+abundances <- read_csv("data/Sim_abund_overall_main.csv")
+differences <- read_csv("data/Sim_diffs_overall_main.csv")
+sampling <- read_csv("data/Sim_samp_overall_main.csv")
+extremes <- read_csv("data/Sim_extremes_overall_main.csv")
+gradients <- read_csv("data/Sim_grads_overall_main.csv")
+shifts <- read_csv("data/Sim_shifts_overall_main.csv")
 
 
 ###Summarise results###
@@ -74,10 +74,12 @@ ggplot(abundances_b_sum, aes(x = V1, y = mean_abundances_b, ymax = max_abundance
 sampled_g <- filter(differences, bin_size == "global")
 sampled_g$occs <- as.numeric(as.character(sampled_g$occs))
 sampled_g$difference <- as.numeric(as.character(sampled_g$difference))
+sampled_g$sampling <- as.factor(sampled_g$sampling)
 
 sampled_b <- filter(differences, bin_size == "lat_band")
 sampled_b$occs <- as.numeric(as.character(sampled_b$occs))
 sampled_b$difference <- as.numeric(as.character(sampled_b$difference))
+sampled_b$sampling <- as.factor(sampled_b$sampling)
 
 ggplot(sampled_g, aes(x = sampling, y = difference, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
@@ -97,11 +99,15 @@ sample_sizes <- filter(results, bin_no != "global") %>%
   select(iteration_no, bin_no, sampling, occs_t1, occs_t2) %>%
   pivot_wider(names_from = sampling, values_from = c(occs_t1, occs_t2))
 sample_sizes[] <- lapply(sample_sizes, as.numeric)
-sample_sizes <- mutate(sample_sizes, avg_sampling = (occs_t1_0 + occs_t2_0)/(occs_t1_100 + occs_t2_100))
+sample_sizes <- mutate(sample_sizes, t1_compl = (occs_t1_0/occs_t1_100)) %>%
+  mutate(t2_compl = (occs_t2_0/occs_t2_100))
 
-mean_sampling <- rep(sample_sizes$avg_sampling, each = 6)
-sampled_b <- cbind(sampled_b, mean_sampling)
-sampled_b <- mutate(sampled_b, sampling_group = cut_width(mean_sampling, width = 0.1, boundary = 0))
+t1_sampling <- rep(sample_sizes$t1_compl, each = 3)
+t2_sampling <- rep(sample_sizes$t2_compl, each = 3)
+sampling_vector <- c(rbind(t2_sampling, t1_sampling))
+sampled_b <- mutate(sampled_b, sampling_prop = sampling_vector)
+sampled_b <- filter(sampled_b, sampling_prop != "Inf")
+sampled_b <- mutate(sampled_b, sampling_group = cut_width(sampling_prop, width = 0.2, boundary = 0))
 
 ggplot(sampled_b, aes(x = size_group, y = difference, counts_cut_width, fill = rate)) + geom_hline(aes(yintercept = 0)) +
   geom_boxplot() + facet_wrap(~method) + scale_fill_manual(values = c("salmon", "lightblue")) +
