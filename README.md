@@ -21,6 +21,7 @@ Latitudinal rates from fossils.R - applying the metrics to the occurrence data
 
 
 Extras:
+
 Raw, BC and GF global rates.R - code to calculate raw, boundary crosser and gap-filler rates on global datasets
 
 Simulation demo.R - a much simpler version of the first simulation, developed for a seminar on building simulations in R for BES Palaeoecology
