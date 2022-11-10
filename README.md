@@ -15,7 +15,7 @@ Wrangle occurrences.R - code for cleaning the PBDB occurrence dataset
 
 Rotating palaeo-occurrences.R - code for pre- and post-processing the occurrences for spatial rotation with GPlates
 
-Sampling through spacei-time.R - code for generating summary statistics from the occurrence data
+Sampling through space-time.R - code for generating summary statistics from the occurrence data
 
 Latitudinal rates from fossils.R - applying the metrics to the occurrence data
 
