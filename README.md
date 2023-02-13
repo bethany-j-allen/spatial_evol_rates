@@ -1,4 +1,6 @@
-This repository contains all of the R code used in the paper, plus a couple of extra related scripts. Unfortunately the data file is too large for GitHub, but is available in the official Dryad repository, or email me and I can send it to you.
+The paper is now available online (https://doi.org/10.1017/pab.2023.1), please email me if you want a copy.
+
+This repository contains all of the R code used in the paper, plus a couple of extra related scripts. Unfortunately the data file is too large for GitHub, but is available in the official Zenodo repository (https://doi.org/10.5281/zenodo.7355273), or email me and I can send it to you.
 
 
 A brief summary of the code:
